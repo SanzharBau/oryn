@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Афиша — Orын</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       АФИША — события всех заведений: концерты, стендап, открытия,
+       мастер-классы, детские шоу. Как sxodim.com или ticketon.kz, но под
+       каждое событие сразу бронируется стол в заведении.
+
+       Фильтры: категория (из platform.eventTypes) и дата.
+       Ссылки, которые понимает страница:
+         events.html?type=concert      — сразу только концерты
+         events.html?event=jazz-friday — сразу открыть окно события
+       ========================================================================== -->
+
+  <header id="topbar"></header>
+
+  <section class="hero-full no-media ev-hero">
+    <div class="hero-content">
+      <div class="eyebrow">Афиша · Астана</div>
+      <h1 class="hero-title" id="evHeroTitle"></h1>
+      <p class="hero-sub">Концерты, стендап, открытия и мастер-классы в заведениях города.
+        Выбирайте событие и сразу бронируйте стол — без звонков.</p>
+    </div>
+  </section>
+
+  <div class="page">
+
+    <div class="demo-strip">
+      <span class="icon">&#9888;&#65039;</span>
+      <span><b>Это демонстрация.</b> События придуманы для показа. Настоящую афишу
+        будут вести сами заведения из своего кабинета.</span>
+    </div>
+
+    <!-- Рекомендуем: события на продвижении (рекламное место или выбор
+         редакции). Стоят над фильтрами и не зависят от них. -->
+    <section class="ev-pinned" id="evPinned"></section>
+
+    <!-- Фильтры: категория и дата -->
+    <div class="ev-filters">
+      <div class="ev-filter-label">Что</div>
+      <div class="filters ev-chips" id="evTypes" role="group" aria-label="Категория"></div>
+      <div class="ev-filter-label">Когда</div>
+      <div class="filters ev-chips" id="evDates" role="group" aria-label="Дата"></div>
+    </div>
+
+    <!-- Сюда скрипт рисует события, сгруппированные по дням -->
+    <div id="evList"></div>
+  </div>
+
+  <footer id="siteFooter"></footer>
+
+  <script src="venues.js"></script>
+  <script src="app.js"></script>
+  <script>
+    /* ========================================================================
+       СТРАНИЦА «АФИША»
+       ------------------------------------------------------------------------
+       Не привязана к одному заведению — как главная, сама собирает шапку,
+       меню для телефона, подвал и кнопки внизу.
+       ======================================================================== */
+
+    applyTheme(platform.theme);
+
+    var navLinks = {
+      left:  [{ text: 'Заведения', href: 'index.html#venuesHead' },
+              { text: 'Афиша',     href: 'events.html' }],
+      right: [{ text: 'Акции',     href: 'index.html#promoFeed' },
+              { text: 'Контакты',  href: 'index.html#contactHead' }]
+    };
+    mountHeader(document.getElementById('topbar'), {
+      banner: 'Афиша заведений · бронь стола под событие',
+      city:   'Астана',
+      left:   navLinks.left,
+      right:  navLinks.right
+    });
+    renderPlatformSidebar(navLinks.left.concat(navLinks.right));
+    renderFooter(document.getElementById('siteFooter'));
+
+    renderActionBar([
+      { text: 'Найти стол', href: 'index.html#venuesHead' },
+      { text: 'Сегодня',    onClick: function () { setDate('today'); scrollToList(); } },
+      { text: 'Выходные',   onClick: function () { setDate('weekend'); scrollToList(); } }
+    ]);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && document.body.classList.contains('menu-open')) closeSidebar();
+    });
+
+    document.getElementById('evHeroTitle').innerHTML = heroTitleHtml('Куда пойти');
+
+
+    /* ------------------------------------------------------------------------
+       1. ДАННЫЕ И СОСТОЯНИЕ ФИЛЬТРОВ
+       ------------------------------------------------------------------------ */
+    var events = allEvents();   // все будущие события, уже по порядку
+    var params = new URLSearchParams(location.search);
+
+    var state = {
+      type: params.get('type') || 'all',
+      date: 'all'
+    };
+
+    /* Периоды для фильтра «Когда». Каждый — проверка: подходит ли дата. */
+    var today = todayISO();
+
+    function weekendRange() {
+      var d = isoToDate(today).getDay();            // 0 — вс, 6 — сб
+      if (d === 0) return [today, today];           // воскресенье — только сегодня
+      var toSat = d === 6 ? 0 : 6 - d;
+      var sat = isoAfter(today, toSat);
+      return [sat, isoAfter(sat, 1)];
+    }
+
+    var DATES = [
+      { id: 'all',     title: 'Все даты',    test: function () { return true; } },
+      { id: 'today',   title: 'Сегодня',     test: function (iso) { return iso === today; } },
+      { id: 'tomorrow', title: 'Завтра',     test: function (iso) { return iso === isoAfter(today, 1); } },
+      { id: 'weekend', title: 'Выходные',    test: function (iso) { var r = weekendRange(); return iso >= r[0] && iso <= r[1]; } },
+      { id: 'week',    title: 'Неделя',      test: function (iso) { return iso <= isoAfter(today, 6); } },
+      { id: 'month',   title: 'Месяц',       test: function (iso) { return iso <= isoAfter(today, 30); } }
+    ];
+
+
+    /* ------------------------------------------------------------------------
+       2. КНОПКИ-ФИЛЬТРЫ
+       ------------------------------------------------------------------------
+       Категории показываем только те, где есть события, и с числом —
+       сразу видно, где выбор богаче.
+       ------------------------------------------------------------------------ */
+    function renderTypeChips() {
+      var types = platform.eventTypes || {};
+      var chips = [{ id: 'all', title: 'Все', count: events.length }];
+      Object.keys(types).forEach(function (id) {
+        var count = events.filter(function (ev) { return ev.type === id; }).length;
+        if (count > 0) chips.push({ id: id, title: types[id].title, count: count });
+      });
+
+      document.getElementById('evTypes').innerHTML = chips.map(function (c) {
+        return '<button type="button" class="filter-btn' + (state.type === c.id ? ' active' : '') + '" ' +
+          'data-type="' + c.id + '" aria-pressed="' + (state.type === c.id) + '">' +
+          esc(c.title) + ' <span class="ev-count">' + c.count + '</span></button>';
+      }).join('');
+    }
+
+    function renderDateChips() {
+      document.getElementById('evDates').innerHTML = DATES.map(function (d) {
+        return '<button type="button" class="filter-btn' + (state.date === d.id ? ' active' : '') + '" ' +
+          'data-date="' + d.id + '" aria-pressed="' + (state.date === d.id) + '">' + esc(d.title) + '</button>';
+      }).join('');
+    }
+
+    document.getElementById('evTypes').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-type]');
+      if (!btn) return;
+      state.type = btn.getAttribute('data-type');
+      renderAll();
+    });
+
+    document.getElementById('evDates').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-date]');
+      if (!btn) return;
+      setDate(btn.getAttribute('data-date'));
+    });
+
+    function setDate(id) {
+      state.date = id;
+      renderAll();
+    }
+
+    function scrollToList() {
+      document.querySelector('.ev-filters').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+
+    /* ------------------------------------------------------------------------
+       3. СПИСОК ПО ДНЯМ
+       ------------------------------------------------------------------------
+       Как на sxodim: заголовок дня («Сегодня», «сб, 8 ноября»),
+       под ним карточки событий этого дня.
+       ------------------------------------------------------------------------ */
+    function renderList() {
+      var dateTest = DATES.filter(function (d) { return d.id === state.date; })[0].test;
+      var shown = events.filter(function (ev) {
+        return (state.type === 'all' || ev.type === state.type) && dateTest(ev.date);
+      });
+
+      var host = document.getElementById('evList');
+
+      if (shown.length === 0) {
+        host.innerHTML =
+          '<div class="ev-empty">' +
+            '<p>На эти даты в этой категории событий пока нет.</p>' +
+            '<button type="button" class="btn btn-ghost" id="evReset">Показать всю афишу</button>' +
+          '</div>';
+        document.getElementById('evReset').addEventListener('click', function () {
+          state.type = 'all';
+          state.date = 'all';
+          renderAll();
+        });
+        return;
+      }
+
+      /* Группируем подряд идущие события одного дня */
+      var groups = [];
+      shown.forEach(function (ev) {
+        var last = groups[groups.length - 1];
+        if (last && last.date === ev.date) last.items.push(ev);
+        else groups.push({ date: ev.date, items: [ev] });
+      });
+
+      host.innerHTML = groups.map(function (g) {
+        var label = eventDayLabel(g.date);
+        /* У «Сегодня» и «Завтра» допишем само число — так понятнее */
+        if (label === 'Сегодня' || label === 'Завтра') label += ', ' + prettyDate(g.date);
+        return '<section class="ev-day">' +
+            '<h2 class="ev-day-title">' + esc(label) + '</h2>' +
+            '<div class="ev-grid">' + g.items.map(eventCardHtml).join('') + '</div>' +
+          '</section>';
+      }).join('');
+    }
+
+    function renderAll() {
+      renderTypeChips();
+      renderDateChips();
+      renderList();
+    }
+
+    renderAll();
+
+
+    /* ------------------------------------------------------------------------
+       4. РЕКОМЕНДУЕМ — события на продвижении
+       ------------------------------------------------------------------------
+       Отмечены в venues.js полем pin. У каждой карточки — подпись
+       «Реклама» или «Выбор редакции», её рисует eventCardHtml.
+       ------------------------------------------------------------------------ */
+    var pinned = events.filter(function (ev) { return ev.pin; });
+    var pinnedHost = document.getElementById('evPinned');
+
+    if (pinned.length === 0) {
+      pinnedHost.style.display = 'none';
+    } else {
+      pinnedHost.innerHTML =
+        '<h2 class="ev-day-title">Рекомендуем</h2>' +
+        '<div class="ev-grid">' + pinned.map(eventCardHtml).join('') + '</div>';
+    }
+
+    /* Ссылка на конкретное событие (из «Поделиться») — сразу открываем его */
+    if (params.get('event')) openEventModal(params.get('event'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Для заведений — Orын</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       ДЛЯ ЗАВЕДЕНИЙ — страница, на которую ведут все ссылки
+       «Разместить заведение», «Тарифы», «Реклама на Orын».
+       Разделы (якоря для ссылок):
+         #why     — что получает заведение
+         #steps   — как подключиться
+         #founders — предложение первым заведениям
+         #plans   — тарифы (из platform.plans)
+         #ads     — рекламные места (из platform.adFormats)
+         #faq     — частые вопросы
+         #apply   — заявка (уходит в WhatsApp Orын из platform.contacts)
+       ========================================================================== -->
+
+  <header id="topbar"></header>
+
+  <section class="hero-full no-media">
+    <div class="hero-content">
+      <div class="eyebrow">Orын для заведений</div>
+      <h1 class="hero-title" id="ptHeroTitle"></h1>
+      <p class="hero-sub">Страница с видео и меню, карта зала, афиша и бронь без звонков.
+        Подключение за один день, без смены кассы.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-coral" href="#apply">Оставить заявку</a>
+        <a class="link-more" href="#plans">Тарифы</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="page">
+
+    <!-- ===== ЧТО ПОЛУЧАЕТ ЗАВЕДЕНИЕ ===== -->
+    <section class="section-anchor" id="why">
+      <div class="eyebrow lined">Зачем</div>
+      <div class="block-title">Что получает заведение</div>
+      <div class="pt-grid">
+        <div class="pt-card"><div class="pt-num">01</div><h3>Меньше звонков</h3>
+          <p>Гость сам видит свободные столы и бронирует. Заявка приходит в ваш WhatsApp готовым сообщением.</p></div>
+        <div class="pt-card"><div class="pt-num">02</div><h3>Гость выбирает глазами</h3>
+          <p>Видео зала, фото блюд, состав и цены. Человек приходит уже уверенным, что ему у вас понравится.</p></div>
+        <div class="pt-card"><div class="pt-num">03</div><h3>Афиша и акции</h3>
+          <p>Концерты, стендап, открытия — в общей афише города. Под событие гость сразу бронирует стол.</p></div>
+        <div class="pt-card"><div class="pt-num">04</div><h3>Цифры для владельца</h3>
+          <p>Брони, загрузка зала, откуда пришли гости, себестоимость и время кухни — в одном кабинете.
+            <a class="pt-inline" href="owner.html?id=circus">Смотреть демо</a></p></div>
+      </div>
+    </section>
+
+    <!-- ===== КАК ПОДКЛЮЧИТЬСЯ ===== -->
+    <section class="section-anchor" id="steps">
+      <div class="eyebrow lined">Подключение</div>
+      <div class="block-title">Пять шагов, один день</div>
+      <ol class="pt-steps">
+        <li><b>Заявка</b><span>Оставляете заявку ниже или пишете нам. 5 минут.</span></li>
+        <li><b>Встреча</b><span>20 минут: показываем сайт, заполняем анкету — меню, часы, столы, контакты.</span></li>
+        <li><b>Съёмка</b><span>Приезжаем до открытия: фото и видео зала, блюда, при желании 360°. 1–2 часа.</span></li>
+        <li><b>Запуск</b><span>Собираем страницу, карту зала и меню. Вы проверяете — и она в каталоге.</span></li>
+        <li><b>Ссылки и обучение</b><span>Даём ссылку и QR для Instagram, 2ГИС и столов. Показываем хостес, как приходят брони.</span></li>
+      </ol>
+    </section>
+
+    <!-- ===== ПАРТНЁРЫ-ОСНОВАТЕЛИ ===== -->
+    <section class="pt-founders section-anchor" id="founders"></section>
+
+    <!-- ===== ТАРИФЫ ===== -->
+    <section class="section-anchor" id="plans">
+      <div class="eyebrow lined">Тарифы</div>
+      <div class="block-title">Абонплата без комиссии</div>
+      <p class="pt-lead">Мы не берём процент с броней и не стоим между вами и гостем:
+        депозиты и оплата идут на ваш Kaspi напрямую. Пилотные цены.</p>
+      <div class="pt-plans" id="ptPlans"></div>
+    </section>
+
+    <!-- ===== РЕКЛАМА ===== -->
+    <section class="section-anchor" id="ads">
+      <div class="eyebrow lined">Продвижение</div>
+      <div class="block-title">Рекламные места на Orын</div>
+      <p class="pt-lead">Хотите, чтобы вас видели первыми? Места продаются на неделю или на событие.
+        Подключаются к любому тарифу.</p>
+      <div class="pt-ads" id="ptAds"></div>
+      <div class="pt-rules">
+        <h3>Честные правила</h3>
+        <ul>
+          <li>Платное место всегда подписано <b>«Реклама»</b> — гость отличает его от остального каталога.</li>
+          <li>Оценки и отзывы не продаются. Ни за какие деньги.</li>
+          <li>На одном экране — не больше двух рекламных мест.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===== ВОПРОСЫ ===== -->
+    <section class="section-anchor" id="faq">
+      <div class="eyebrow lined">Вопросы</div>
+      <div class="block-title">Частые вопросы</div>
+      <div class="accordion" id="ptFaq"></div>
+    </section>
+
+    <!-- ===== ЗАЯВКА ===== -->
+    <section class="section-anchor pt-apply" id="apply">
+      <div class="eyebrow lined">Заявка</div>
+      <div class="block-title">Подключить заведение</div>
+      <p class="pt-lead">Перезвоним или напишем в WhatsApp в течение дня.</p>
+
+      <form class="pt-form" id="ptForm" novalidate>
+        <div class="row2">
+          <div class="field">
+            <label for="ptVenue">Заведение</label>
+            <input type="text" id="ptVenue" placeholder="Название" autocomplete="organization">
+          </div>
+          <div class="field">
+            <label for="ptCity">Город</label>
+            <select id="ptCity">
+              <option>Астана</option><option>Алматы</option><option>Шымкент</option><option>Другой</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="ptName">Ваше имя</label>
+            <input type="text" id="ptName" placeholder="Как к вам обращаться" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="ptPhone">Телефон или WhatsApp</label>
+            <input type="tel" id="ptPhone" placeholder="+7 701 234 56 78" autocomplete="tel">
+          </div>
+        </div>
+        <div class="field">
+          <label for="ptTopic">Что интересует</label>
+          <select id="ptTopic">
+            <option>Подключить заведение</option>
+            <option>Рекламное место</option>
+            <option>Партнёрство и интеграции</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ptNote">Комментарий</label>
+          <input type="text" id="ptNote" placeholder="Например: 2 зала, 40 столов, есть веранда">
+        </div>
+        <label class="pt-consent">
+          <input type="checkbox" id="ptConsent">
+          <span>Согласен, что Orын использует эти данные, чтобы связаться со мной по заявке</span>
+        </label>
+        <div class="form-error" id="ptError"></div>
+        <button type="submit" class="btn btn-coral">Отправить заявку</button>
+      </form>
+
+      <div class="pt-done" id="ptDone" hidden></div>
+    </section>
+  </div>
+
+  <footer id="siteFooter"></footer>
+
+  <script src="venues.js"></script>
+  <script src="app.js"></script>
+  <script>
+    /* ========================================================================
+       СТРАНИЦА «ДЛЯ ЗАВЕДЕНИЙ»
+       ------------------------------------------------------------------------
+       Тарифы, рекламные места, предложение основателям и контакты берём
+       из venues.js (platform.plans, adFormats, founders, contacts) —
+       чтобы цену поменять в одном месте, а не искать по страницам.
+       ======================================================================== */
+
+    applyTheme(platform.theme);
+
+    var navLinks = {
+      left:  [{ text: 'Заведения', href: 'index.html#venuesHead' },
+              { text: 'Афиша',     href: 'events.html' }],
+      right: [{ text: 'Тарифы',    href: '#plans' },
+              { text: 'Реклама',   href: '#ads' }]
+    };
+    mountHeader(document.getElementById('topbar'), {
+      banner: 'Для заведений · подключение за один день',
+      city:   'Астана',
+      left:   navLinks.left,
+      right:  navLinks.right
+    });
+    renderPlatformSidebar(navLinks.left.concat(navLinks.right));
+    renderFooter(document.getElementById('siteFooter'));
+
+    renderActionBar([
+      { text: 'Оставить заявку', href: '#apply' },
+      { text: 'Тарифы',          href: '#plans' },
+      { text: 'Реклама',         href: '#ads' }
+    ]);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && document.body.classList.contains('menu-open')) closeSidebar();
+    });
+
+    document.getElementById('ptHeroTitle').innerHTML = heroTitleHtml('Гости приходят сами');
+
+
+    /* ------------------------------------------------------------------------
+       1. ПАРТНЁРЫ-ОСНОВАТЕЛИ — сколько мест осталось
+       ------------------------------------------------------------------------ */
+    var founders = platform.founders;
+    var foundersHost = document.getElementById('founders');
+
+    if (!founders) {
+      foundersHost.style.display = 'none';
+    } else {
+      var taken = Object.keys(venues).length;
+      var left = Math.max(0, founders.limit - taken);
+      foundersHost.innerHTML =
+        '<div class="pt-founders-inner">' +
+          '<div class="pt-founders-count"><b>' + left + '</b><span>из ' + founders.limit + ' мест<br>осталось</span></div>' +
+          '<div>' +
+            '<div class="eyebrow">Первым заведениям</div>' +
+            '<h2>Партнёр-основатель</h2>' +
+            '<ul class="pt-perks">' + founders.perks.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>' +
+            '<a class="btn btn-light" href="#apply">Занять место</a>' +
+          '</div>' +
+        '</div>';
+    }
+
+
+    /* ------------------------------------------------------------------------
+       2. ТАРИФЫ И РЕКЛАМНЫЕ МЕСТА
+       ------------------------------------------------------------------------ */
+    document.getElementById('ptPlans').innerHTML = (platform.plans || []).map(function (plan) {
+      return '<div class="pt-plan' + (plan.featured ? ' is-featured' : '') + '">' +
+          (plan.featured ? '<div class="pt-plan-badge">Чаще выбирают</div>' : '') +
+          '<h3>' + esc(plan.title) + '</h3>' +
+          '<div class="pt-price"><b>' + esc(plan.price) + '</b><span>' + esc(plan.period) + '</span></div>' +
+          '<p>' + esc(plan.text) + '</p>' +
+          '<ul>' + plan.items.map(function (it) { return '<li>' + esc(it) + '</li>'; }).join('') + '</ul>' +
+          '<a class="btn' + (plan.featured ? ' btn-coral' : ' btn-ghost') + '" href="#apply" data-plan="' + esc(plan.title) + '">Выбрать</a>' +
+        '</div>';
+    }).join('');
+
+    document.getElementById('ptAds').innerHTML = (platform.adFormats || []).map(function (ad) {
+      return '<div class="pt-ad">' +
+          '<h3>' + esc(ad.title) + '</h3>' +
+          '<p>' + esc(ad.text) + '</p>' +
+          '<div class="pt-ad-price"><b>' + esc(ad.price) + '</b> / ' + esc(ad.period) + '</div>' +
+          '<a class="link-more" href="#apply" data-ad="' + esc(ad.title) + '">Забронировать место</a>' +
+        '</div>';
+    }).join('');
+
+    /* Кнопка тарифа или рекламного места сразу подставляет тему в заявку */
+    document.addEventListener('click', function (e) {
+      var plan = e.target.closest('[data-plan]');
+      var ad = e.target.closest('[data-ad]');
+      if (plan) {
+        document.getElementById('ptTopic').value = 'Подключить заведение';
+        document.getElementById('ptNote').value = 'Тариф: ' + plan.getAttribute('data-plan');
+      }
+      if (ad) {
+        document.getElementById('ptTopic').value = 'Рекламное место';
+        document.getElementById('ptNote').value = 'Место: ' + ad.getAttribute('data-ad');
+      }
+    });
+
+
+    /* ------------------------------------------------------------------------
+       3. ЧАСТЫЕ ВОПРОСЫ — раскрывающийся список, как «Контакты» на главной
+       ------------------------------------------------------------------------ */
+    var FAQ = [
+      ['Гость платит за бронь?', 'Нет. Бронь для гостя бесплатная, как звонок администратору.'],
+      ['Вы берёте процент с броней или с чека?', 'Нет. Только абонплата по тарифу. Сколько бы гостей ни пришло через Orын — платите одинаково.'],
+      ['Куда приходят брони?', 'В WhatsApp заведения — готовым сообщением: дата, время, гости, стол, имя и телефон. Позже — ещё и в кабинет хостес.'],
+      ['Как гость платит депозит?', 'Напрямую вам — на Kaspi или через ваш эквайринг. Деньги гостей через нас не проходят.'],
+      ['Нужно менять кассу или ставить программу?', 'Нет. Для старта хватает WhatsApp. Подключение кассы (iiko, Poster, r_keeper) — по желанию, на тарифе «Живой зал».'],
+      ['Кто будет вести страницу?', 'При подключении всё собираем мы. Потом меню, акции и события меняем по вашему сообщению, а позже — вы сами в кабинете.'],
+      ['Можно отключиться?', 'Да, в любой момент. Месяц, который вы оплатили, работает до конца.']
+    ];
+
+    var faq = document.getElementById('ptFaq');
+    faq.innerHTML = FAQ.map(function (item, i) {
+      return '<div class="acc-item">' +
+          '<button class="acc-head" type="button" aria-expanded="false" aria-controls="faq' + i + '">' +
+            '<span>' + esc(item[0]) + '</span><span class="acc-plus" aria-hidden="true"></span>' +
+          '</button>' +
+          '<div class="acc-body" id="faq' + i + '" hidden><p>' + esc(item[1]) + '</p></div>' +
+        '</div>';
+    }).join('');
+
+    faq.querySelectorAll('.acc-head').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var open = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', open ? 'false' : 'true');
+        document.getElementById(button.getAttribute('aria-controls')).hidden = open;
+      });
+    });
+
+
+    /* ------------------------------------------------------------------------
+       4. ЗАЯВКА
+       ------------------------------------------------------------------------
+       Куда уходит — в WhatsApp Orын (platform.contacts), по порядку:
+         • есть номер (whatsapp) — чат открывается с готовым текстом;
+         • есть только короткая ссылка (whatsappLink) — текст в неё не
+           подставить, поэтому копируем заявку в буфер обмена и открываем
+           чат: остаётся вставить и отправить;
+         • нет ничего — демо: «заявка принята», но никуда не уходит.
+       ------------------------------------------------------------------------ */
+    document.getElementById('ptForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = function (id) { return document.getElementById(id).value.trim(); };
+      var error = document.getElementById('ptError');
+
+      if (v('ptVenue').length < 2) { error.textContent = 'Напишите название заведения'; return; }
+      if (v('ptName').length < 2)  { error.textContent = 'Напишите, как к вам обращаться'; return; }
+      if (onlyDigits(v('ptPhone')).length < 10) { error.textContent = 'Введите телефон полностью'; return; }
+      if (!document.getElementById('ptConsent').checked) { error.textContent = 'Отметьте согласие — без него мы не сможем связаться'; return; }
+      error.textContent = '';
+
+      var text =
+        'Заявка с сайта Orын\n' +
+        'Тема: ' + v('ptTopic') + '\n' +
+        'Заведение: ' + v('ptVenue') + ' (' + v('ptCity') + ')\n' +
+        'Имя: ' + v('ptName') + '\n' +
+        'Телефон: ' + v('ptPhone') +
+        (v('ptNote') ? '\nКомментарий: ' + v('ptNote') : '');
+
+      var contacts = platform.contacts || {};
+      var wa = onlyDigits(contacts.whatsapp || '');
+      var done = document.getElementById('ptDone');
+
+      if (wa.length >= 10) {
+        window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
+        done.innerHTML = '<h3>Почти готово</h3><p>Открылся WhatsApp с готовым сообщением — нажмите «Отправить».</p>';
+      } else if (contacts.whatsappLink) {
+        /* Сначала копируем, потом открываем чат — пока страница ещё в фокусе */
+        if (navigator.clipboard) navigator.clipboard.writeText(text).catch(function () {});
+        window.open(contacts.whatsappLink, '_blank', 'noopener');
+        done.innerHTML = '<h3>Почти готово</h3>' +
+          '<p>Открылся WhatsApp Orын. Текст заявки уже скопирован — вставьте его в чат и нажмите «Отправить».</p>' +
+          '<pre class="pt-preview">' + esc(text) + '</pre>' +
+          '<div class="pt-done-actions">' +
+            '<button type="button" class="btn btn-ghost" id="ptCopy">Скопировать ещё раз</button>' +
+            '<a class="btn btn-coral" href="' + esc(contacts.whatsappLink) + '" target="_blank" rel="noopener">Открыть WhatsApp</a>' +
+          '</div>' +
+          '<div class="ev-share-note" id="ptCopyNote" aria-live="polite"></div>';
+        document.getElementById('ptForm').hidden = true;
+        done.hidden = false;
+        document.getElementById('ptCopy').addEventListener('click', function () {
+          if (!navigator.clipboard) return;
+          navigator.clipboard.writeText(text).then(function () {
+            document.getElementById('ptCopyNote').textContent = 'Скопировано';
+          });
+        });
+        return;
+      } else {
+        done.innerHTML = '<h3>Заявка принята</h3>' +
+          '<p>Это демо-версия: номер для заявок ещё не подключён, поэтому сообщение никуда не ушло.</p>' +
+          '<pre class="pt-preview">' + esc(text) + '</pre>';
+      }
+      document.getElementById('ptForm').hidden = true;
+      done.hidden = false;
+    });
+  </script>
+</body>
+</html>

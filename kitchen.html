@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Экран кухни — демо</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="kds-body">
+
+  <!-- ==========================================================================
+       ЭКРАН КУХНИ — ДЕМОНСТРАЦИЯ
+       --------------------------------------------------------------------------
+       Так будет выглядеть планшет на кухне. Заказ приходит — запускается
+       таймер. Повар нажимает «Готово» — время приготовления записано.
+       Официант забирает блюдо с раздачи — записано время ожидания.
+       Из этих отметок собирается вкладка «Кухня» в кабинете владельца.
+
+       Заказы выдуманные и приходят сами. Время ускорено в 10 раз,
+       чтобы на встрече не ждать по 20 минут.
+       ========================================================================== -->
+
+  <header class="kds-head">
+    <a class="kds-back" href="owner.html#kitchen">&larr; Кабинет владельца</a>
+    <div class="kds-title">
+      <b>Экран кухни</b>
+      <span id="kdsVenue"></span>
+    </div>
+    <div class="kds-clock">
+      <b id="kdsClock">--:--</b>
+      <span>демо · время ×10</span>
+    </div>
+  </header>
+
+  <main class="kds">
+    <section class="kds-col">
+      <h2 class="kds-col-title">Готовится <span id="cookCount"></span></h2>
+      <div id="cookList"></div>
+    </section>
+
+    <section class="kds-col">
+      <h2 class="kds-col-title">На раздаче <span id="passCount"></span></h2>
+      <div id="passList"></div>
+      <p class="kds-empty" id="passEmpty">Пусто — все блюда у гостей</p>
+    </section>
+
+    <section class="kds-col kds-stats">
+      <h2 class="kds-col-title">Итоги смены</h2>
+      <div class="kds-kpis" id="kdsKpis"></div>
+      <h3 class="kds-sub">Последние блюда</h3>
+      <div id="doneList"></div>
+    </section>
+  </main>
+
+  <script src="venues.js"></script>
+  <script src="app.js"></script>
+  <script src="owner-demo.js"></script>
+  <script>
+    var venue = getVenue();
+    applyTheme(platform.theme);
+    document.getElementById('kdsVenue').textContent = venue.name;
+
+    /* ------------------------------------------------------------------------
+       1. ДЕМО-ВРЕМЯ
+       ------------------------------------------------------------------------
+       Часы смены идут в 10 раз быстрее настоящих: 1 секунда = 10 секунд.
+       Смена «начинается» в 19:00 — самое загруженное время.
+       ------------------------------------------------------------------------ */
+    var SPEED = 10;
+    var realStart = Date.now();
+    var shiftStart = new Date();
+    shiftStart.setHours(19, 0, 0, 0);
+
+    /* Сколько демо-секунд прошло с начала смены */
+    function nowSec() {
+      return (Date.now() - realStart) / 1000 * SPEED;
+    }
+
+    /* 125 секунд → «2:05» */
+    function mmss(sec) {
+      sec = Math.max(0, Math.floor(sec));
+      return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+    }
+
+    function clockText(sec) {
+      var d = new Date(shiftStart.getTime() + sec * 1000);
+      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
+
+    /* ------------------------------------------------------------------------
+       2. БЛЮДА И НОРМЫ
+       ------------------------------------------------------------------------
+       Норма берётся по порядку: техкарта → вкладка «Кухня» → время из меню
+       («~25 мин») → 12 минут, если нигде не указано.
+       ------------------------------------------------------------------------ */
+    function normFor(dish) {
+      var card = DEMO.techCards.filter(function (c) { return c.dish === dish.name; })[0];
+      if (card) return card.cookNorm;
+      var k = DEMO.kitchen.dishes.filter(function (d) { return d.dish === dish.name; })[0];
+      if (k) return k.norm;
+      if (dish.cookTime) return Number(onlyDigits(dish.cookTime)) || 12;
+      return 12;
+    }
+
+    var pool = [];
+    venue.menu.forEach(function (section) {
+      section.items.forEach(function (dish) {
+        if (!dish.stop) pool.push({ name: dish.name, norm: normFor(dish) });
+      });
+    });
+    /* Блюда из техкарт попадают в заказы чаще — они «хиты» */
+    DEMO.techCards.forEach(function (c) {
+      var found = pool.filter(function (p) { return p.name === c.dish; })[0];
+      if (found) pool.push(found, found);
+    });
+
+    var tables = venue.hall.tables.map(function (t) { return t.id; });
+
+
+    /* ------------------------------------------------------------------------
+       3. СОСТОЯНИЕ
+       ------------------------------------------------------------------------
+       orders — заказы на кухне, у каждого список блюд;
+       pass   — готовые блюда, которые ждут официанта;
+       done   — отданные блюда: из них и считается статистика.
+       ------------------------------------------------------------------------ */
+    var orders = [];
+    var pass = [];
+    var done = [];
+    var nextId = 1;
+
+    function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
+
+    function addOrder(agoSec) {
+      var count = 1 + Math.floor(Math.random() * 3);
+      var at = nowSec() - (agoSec || 0);
+      var items = [];
+      for (var i = 0; i < count; i++) {
+        var d = pick(pool);
+        items.push({ id: nextId++, name: d.name, norm: d.norm, at: at });
+      }
+      orders.push({ id: nextId++, table: pick(tables), at: at, items: items });
+    }
+
+    /* Стартовые заказы, будто смена уже идёт */
+    addOrder(11 * 60);
+    addOrder(6 * 60);
+    addOrder(2 * 60);
+
+
+    /* ------------------------------------------------------------------------
+       4. РИСОВАНИЕ
+       ------------------------------------------------------------------------
+       Список перерисовываем только когда он меняется (пришёл заказ,
+       нажали кнопку). Каждую секунду обновляем лишь цифры таймеров —
+       иначе кнопка пропадала бы из-под пальца в момент нажатия.
+       ------------------------------------------------------------------------ */
+    function levelOf(sec, norm) {
+      var r = sec / (norm * 60);
+      if (r < 0.7) return 'ok';
+      if (r <= 1) return 'warn';
+      return 'bad';
+    }
+
+    function renderLists() {
+      document.getElementById('cookList').innerHTML = orders.map(function (o) {
+        return '<div class="kds-order">' +
+            '<div class="kds-order-head"><b>Стол ' + esc(o.table) + '</b><span>пришёл в ' + clockText(o.at) + '</span></div>' +
+            o.items.map(function (it) {
+              return '<div class="kds-item" data-item="' + it.id + '">' +
+                  '<div class="kds-item-main">' +
+                    '<div class="kds-item-name">' + esc(it.name) + '</div>' +
+                    '<div class="kds-item-meta"><span class="kds-timer" data-at="' + it.at + '" data-norm="' + it.norm + '"></span>' +
+                      ' <span class="kds-norm">норма ' + it.norm + ' мин</span></div>' +
+                    '<div class="kds-progress"><span data-bar="' + it.id + '"></span></div>' +
+                  '</div>' +
+                  '<button type="button" class="btn kds-btn" data-ready="' + it.id + '">Готово</button>' +
+                '</div>';
+            }).join('') +
+          '</div>';
+      }).join('');
+
+      document.getElementById('passList').innerHTML = pass.map(function (it) {
+        return '<div class="kds-item kds-pass" data-item="' + it.id + '">' +
+            '<div class="kds-item-main">' +
+              '<div class="kds-item-name">' + esc(it.name) + '</div>' +
+              '<div class="kds-item-meta">Стол ' + esc(it.table) + ' · ждёт <span class="kds-wait" data-ready-at="' + it.readyAt + '"></span></div>' +
+            '</div>' +
+            '<button type="button" class="btn btn-ghost kds-btn" data-taken="' + it.id + '">Забрали</button>' +
+          '</div>';
+      }).join('');
+
+      var cooking = orders.reduce(function (s, o) { return s + o.items.length; }, 0);
+      document.getElementById('cookCount').textContent = cooking ? '· ' + cooking : '';
+      document.getElementById('passCount').textContent = pass.length ? '· ' + pass.length : '';
+      document.getElementById('passEmpty').hidden = pass.length > 0;
+
+      renderStats();
+      tick();
+    }
+
+    function median(list) {
+      if (!list.length) return 0;
+      var s = list.slice().sort(function (a, b) { return a - b; });
+      return s[Math.floor(s.length / 2)];
+    }
+
+    function renderStats() {
+      var cookMins = done.map(function (d) { return d.cook / 60; });
+      var waitMins = done.map(function (d) { return d.wait / 60; });
+      var onTime = done.filter(function (d) { return d.cook <= d.norm * 60; }).length;
+
+      var kpis = [
+        ['Отдано блюд', String(done.length)],
+        ['Типичное время', done.length ? Math.round(median(cookMins)) + ' мин' : '—'],
+        ['Вовремя', done.length ? Math.round(onTime / done.length * 100) + '%' : '—'],
+        ['На раздаче', done.length ? (Math.round(median(waitMins) * 10) / 10).toString().replace('.', ',') + ' мин' : '—']
+      ];
+      document.getElementById('kdsKpis').innerHTML = kpis.map(function (k) {
+        return '<div class="kds-kpi"><span>' + k[0] + '</span><b>' + k[1] + '</b></div>';
+      }).join('');
+
+      document.getElementById('doneList').innerHTML = done.length
+        ? done.slice(-8).reverse().map(function (d) {
+            var lv = d.cook <= d.norm * 60 ? 'ok' : (d.cook <= d.norm * 60 * 1.25 ? 'warn' : 'bad');
+            return '<div class="kds-done">' +
+                '<span class="kds-done-name">' + esc(d.name) + '</span>' +
+                '<span class="a-tag ' + lv + '">' + Math.round(d.cook / 60) + ' / ' + d.norm + ' мин</span>' +
+              '</div>';
+          }).join('')
+        : '<p class="kds-empty">Нажмите «Готово» у любого блюда, потом «Забрали» — и здесь появится запись со временем.</p>';
+    }
+
+    /* Каждую секунду: часы, таймеры, полоски */
+    function tick() {
+      var now = nowSec();
+      document.getElementById('kdsClock').textContent = clockText(now);
+
+      document.querySelectorAll('.kds-timer').forEach(function (el) {
+        var sec = now - Number(el.getAttribute('data-at'));
+        var norm = Number(el.getAttribute('data-norm'));
+        el.textContent = mmss(sec);
+        el.className = 'kds-timer ' + levelOf(sec, norm);
+        var item = el.closest('.kds-item');
+        var bar = item.querySelector('[data-bar]');
+        bar.style.width = Math.min(100, sec / (norm * 60) * 100) + '%';
+        bar.className = levelOf(sec, norm);
+      });
+
+      document.querySelectorAll('.kds-wait').forEach(function (el) {
+        var sec = now - Number(el.getAttribute('data-ready-at'));
+        el.textContent = mmss(sec);
+        el.className = 'kds-wait ' + (sec > 180 ? 'bad' : (sec > 90 ? 'warn' : 'ok'));
+      });
+    }
+
+
+    /* ------------------------------------------------------------------------
+       5. КНОПКИ «ГОТОВО» И «ЗАБРАЛИ»
+       ------------------------------------------------------------------------ */
+    document.addEventListener('click', function (e) {
+      var ready = e.target.closest('[data-ready]');
+      if (ready) {
+        var id = Number(ready.getAttribute('data-ready'));
+        orders.forEach(function (o) {
+          o.items = o.items.filter(function (it) {
+            if (it.id !== id) return true;
+            pass.push({ id: it.id, name: it.name, norm: it.norm, table: o.table, at: it.at, readyAt: nowSec() });
+            return false;
+          });
+        });
+        orders = orders.filter(function (o) { return o.items.length > 0; });
+        renderLists();
+        return;
+      }
+
+      var taken = e.target.closest('[data-taken]');
+      if (taken) {
+        var tid = Number(taken.getAttribute('data-taken'));
+        pass = pass.filter(function (it) {
+          if (it.id !== tid) return true;
+          var now = nowSec();
+          done.push({ name: it.name, norm: it.norm, cook: it.readyAt - it.at, wait: now - it.readyAt });
+          return false;
+        });
+        renderLists();
+      }
+    });
+
+
+    /* ------------------------------------------------------------------------
+       6. ПОТОК ЗАКАЗОВ
+       ------------------------------------------------------------------------
+       Новый заказ каждые 25 настоящих секунд (≈ 4 минуты смены),
+       но не больше 6 заказов на экране — чтобы демо не захлебнулось.
+       ------------------------------------------------------------------------ */
+    setInterval(function () {
+      if (orders.length < 6) { addOrder(0); renderLists(); }
+    }, 25000);
+
+    setInterval(tick, 1000);
+    renderLists();
+  </script>
+</body>
+</html>

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orын — столик под настроение</title>
+
+  <!-- Шрифты в духе ONYX, оба с кириллицей:
+       Cormorant Garamond — тонкие высокие засечки для заголовков;
+       Jost — геометрический гротеск для текста и подписей.
+       display=swap: текст показывается сразу системным шрифтом
+       и подменяется, когда загрузятся эти — страница не «мигает» пустотой. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="cover-page">
+
+  <!-- ЗАСТАВКА: кремовый экран со знаком и одной фразой на секунду
+       при открытии. Потом плавно исчезает, клик убирает её сразу. -->
+  <div class="intro" id="intro" aria-hidden="true">
+    <span class="intro-text" id="introText"></span>
+  </div>
+
+  <!-- ШАПКА: строка-объявление, двойная линия, ссылки по сторонам от знака -->
+  <header id="topbar"></header>
+
+  <!-- ПЕРВЫЙ ЭКРАН: мрамор, слева огромный заголовок, справа видео в рамке
+       и вращающаяся печать на её углу (печать добавляет скрипт) -->
+  <section class="hero-full" id="homeHero">
+    <div class="hero-media" id="heroMedia" role="img" aria-label="Зал заведения"></div>
+    <div class="hero-content">
+      <div class="eyebrow" id="heroEyebrow"></div>
+      <h1 class="hero-title" id="heroTitle"></h1>
+      <p class="hero-sub" id="heroLead"></p>
+      <div class="hero-ctas">
+        <a class="btn btn-light" id="heroPrimary" href="#venuesHead"></a>
+        <a class="link-more" id="heroSecondary" href="#how"></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- КАК ЭТО РАБОТАЕТ: красный блок с бордовыми «кляксами» и круглыми фото -->
+  <section class="statement section-anchor" id="how"></section>
+
+  <!-- ВЫБОР НЕДЕЛИ: большой блок одного заведения. Рекламное место
+       (platform.adFormats → featured). Платное подписано «Реклама»,
+       выбранное нами — «Выбор редакции». Нет такого заведения — блок скрыт. -->
+  <section class="featured" id="featuredHost"></section>
+
+  <!-- ЗАВЕДЕНИЯ: заголовок, поиск и плитки -->
+  <div class="section-head section-anchor" id="venuesHead">
+    <div class="eyebrow lined">Заведения</div>
+    <h2>Где ужинаем сегодня</h2>
+  </div>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <span class="search-icon">&#128269;</span>
+      <input type="search" id="venueSearch" placeholder="Название, кухня или город"
+             autocomplete="off" aria-label="Поиск заведений">
+    </div>
+  </div>
+
+  <!-- Сюда скрипт рисует плитку на каждое заведение из venues.js -->
+  <div class="venues-grid" id="venuesGrid"></div>
+
+  <!-- АФИША: ближайшие события заведений — концерты, стендап, открытия.
+       Лента карточек и ссылка на всю афишу (events.html) -->
+  <div class="section-head section-anchor" id="eventsHead">
+    <div class="eyebrow lined">Афиша</div>
+    <h2>Куда пойти на этой неделе<span class="demo-badge">демо</span></h2>
+  </div>
+  <div class="wrap reveal" id="eventsHost">
+    <div class="events-strip ev-strip" id="homeEvents"></div>
+    <div class="ev-all"><a class="link-more" href="events.html">Вся афиша</a></div>
+  </div>
+
+  <!-- ПОДБОРКИ: «Популярное», «Новое» — рисуются из platform.tops -->
+  <div id="topsHost"></div>
+
+  <!-- АКЦИИ: круглые «тарелки» в ряд, фон блока меняет цвет
+       под ту акцию, что сейчас в центре. Заголовок дугой рисует скрипт. -->
+  <section class="section-anchor" id="promoFeed"></section>
+
+  <!-- ЦИФРЫ ПЛАТФОРМЫ: круглые «печати» поверх фото -->
+  <div class="section-head" id="statsHead">
+    <div class="eyebrow lined">Orын в цифрах</div>
+    <h2>Всё, что видно до звонка</h2>
+  </div>
+  <div class="wrap reveal" id="statsHost"></div>
+
+  <!-- СТАТЬИ: карточки-афиши в красной рамке, листаются стрелками -->
+  <div class="section-head" id="articlesHead">
+    <div class="eyebrow lined">Журнал</div>
+    <h2>Статьи и новости</h2>
+  </div>
+  <div class="wrap reveal" id="articlesHost"></div>
+
+  <!-- СВЯЖИТЕСЬ С НАМИ: раскрывающийся список, как вакансии у Délice -->
+  <div class="section-head section-anchor" id="contactHead">
+    <div class="eyebrow lined">Контакты</div>
+    <h2>Свяжитесь с нами</h2>
+  </div>
+  <div class="wrap" id="contactHost"></div>
+
+  <!-- БОЛЬШИЕ ФОТО-БЛОКИ: два перехода во всю высоту перед подвалом -->
+  <section class="split-cta" id="tilesHost"></section>
+
+  <!-- Подвал: часы работы заведений и колонки ссылок -->
+  <footer id="siteFooter"></footer>
+
+  <script src="venues.js"></script>
+  <script src="app.js"></script>
+  <script>
+    /* ========================================================================
+       ГЛАВНАЯ СТРАНИЦА-АФИША
+       ------------------------------------------------------------------------
+       Единственная страница, которая работает не с одним заведением, а со
+       всем списком сразу. Поэтому она не вызывает initVenuePage — вместо
+       этого берёт цвета платформы и сама рисует блоки.
+       ======================================================================== */
+
+    // 1. Цвета платформы, шапка, меню для телефона и кнопки в углу
+    applyTheme(platform.theme);
+
+    var hero = platform.hero || {};
+
+    function goToVenues() {
+      document.getElementById('venuesHead').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    /* Ссылки шапки ведут к разделам этой же страницы */
+    var navLinks = {
+      left:  [{ text: 'Заведения',        href: '#venuesHead' },
+              { text: 'Афиша',            href: 'events.html' }],
+      right: [{ text: 'Акции',            href: '#promoFeed' },
+              { text: 'Контакты',         href: '#contactHead' }]
+    };
+
+    mountHeader(document.getElementById('topbar'), {
+      banner: hero.banner || platform.tagline,
+      city:   'Астана',
+      left:   navLinks.left,
+      right:  navLinks.right
+    });
+    renderPlatformSidebar(navLinks.left.concat(navLinks.right));
+
+    /* Бронь всегда привязана к конкретному месту, поэтому главная кнопка
+       в углу ведёт к списку заведений */
+    renderActionBar([
+      { text: 'Найти стол',       onClick: goToVenues },
+      { text: 'Афиша',            href: 'events.html' },
+      { text: 'Акции',            href: '#promoFeed' }
+    ]);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && document.body.classList.contains('menu-open')) closeSidebar();
+    });
+
+
+    /* ------------------------------------------------------------------------
+       1.2. ЗАСТАВКА
+       ------------------------------------------------------------------------
+       Держится чуть больше секунды и тает. Запоминать «уже показывали»
+       не можем — хранилище браузера в проекте не используем, — поэтому
+       она короткая и убирается кликом.
+       ------------------------------------------------------------------------ */
+    var intro = document.getElementById('intro');
+    intro.innerHTML = LOGO_SVG + '<span class="intro-text">' + esc(hero.intro || platform.tagline) + '</span>';
+
+    function hideIntro() { intro.classList.add('gone'); }
+    intro.addEventListener('click', hideIntro);
+    setTimeout(hideIntro, 1300);
+
+
+    /* ------------------------------------------------------------------------
+       1.5. ПЕРВЫЙ ЭКРАН
+       ------------------------------------------------------------------------ */
+    document.getElementById('heroEyebrow').textContent = hero.eyebrow || platform.name;
+    document.getElementById('heroTitle').innerHTML = heroTitleHtml(hero.title || platform.tagline);
+    document.getElementById('heroLead').textContent = hero.lead || platform.description;
+    document.getElementById('heroPrimary').textContent = hero.primary || 'Найти заведение';
+    document.getElementById('heroSecondary').textContent = hero.secondary || 'Как это работает';
+
+    /* Фон — видео из platform.hero.video. Пока оно грузится, виден его кадр-постер;
+       если видео не задано — обложка первого заведения. */
+    var heroMedia = document.getElementById('heroMedia');
+    var первое = venues[Object.keys(venues)[0]];
+    if (hero.video) {
+      heroMedia.style.backgroundImage = 'url(\'' + esc(hero.video.poster || первое.cover) + '\')';
+      heroMedia.innerHTML = heroVideoHtml(hero.video, 'Ужин в ресторане');
+    } else {
+      heroMedia.style.backgroundImage = 'url(\'' + esc(первое.cover) + '\')';
+    }
+    heroMedia.insertAdjacentHTML('afterend', heroBadgeHtml(platform.name + ' · Астана · столик под настроение · '));
+
+    document.getElementById('heroPrimary').addEventListener('click', function (e) {
+      e.preventDefault();
+      goToVenues();
+    });
+
+
+    /* ------------------------------------------------------------------------
+       1.7. «КАК ЭТО РАБОТАЕТ» — красный блок по центру
+       ------------------------------------------------------------------------ */
+    var how = platform.how;
+    var howHost = document.getElementById('how');
+
+    if (!how) {
+      howHost.style.display = 'none';
+    } else {
+      howHost.innerHTML =
+        '<div class="statement-text reveal">' +
+          '<div class="eyebrow lined">' + esc(how.eyebrow) + '</div>' +
+          '<h2>' + esc(how.title) + '</h2>' +
+          '<p>' + esc(how.text) + '</p>' +
+          '<a class="btn btn-light" href="' + esc(how.href) + '">' + esc(how.link) + '</a>' +
+        '</div>' +
+        circlePhotosHtml(how.photos);
+    }
+
+
+    /* ------------------------------------------------------------------------
+       1.8. ВЫБОР НЕДЕЛИ
+       ------------------------------------------------------------------------
+       Фото заведения во всю высоту слева, справа — название, фраза,
+       ближайшее событие и кнопки. Какое заведение показать, решает
+       featuredVenueId() в app.js по полю ads.featured.
+       ------------------------------------------------------------------------ */
+    var featuredHost = document.getElementById('featuredHost');
+    var featuredId = featuredVenueId();
+
+    if (!featuredId) {
+      featuredHost.style.display = 'none';
+    } else {
+      var fv = venues[featuredId];
+      var fAbout = fv.about || {};
+      var fFree = fv.hall.tables.filter(function (t) { return t.status === 'free'; }).length;
+      var fEvent = allEvents().filter(function (ev) { return ev.venueId === featuredId; })[0];
+
+      featuredHost.innerHTML =
+        '<div class="featured-media reveal">' +
+          '<div class="featured-photo" style="background-image:url(\'' + esc(fAbout.heroPhoto || fv.cover) + '\')"></div>' +
+        '</div>' +
+        '<div class="featured-text reveal">' +
+          adLabelHtml(fv.ads.featured.paid) +
+          '<div class="eyebrow">Выбор недели</div>' +
+          '<h2>' + esc(fv.name) + '</h2>' +
+          '<p class="featured-tagline">' + esc(fAbout.tagline || fv.tagline || '') + '</p>' +
+          '<div class="venue-rows">' +
+            '<div><span>Кухня</span><b>' + esc(fv.kitchen) + '</b></div>' +
+            (fv.avgCheck ? '<div><span>Средний чек</span><b>' + esc(fv.avgCheck) + '</b></div>' : '') +
+            '<div><span>Сейчас свободно</span><b>' + fFree + ' столов</b></div>' +
+            (fEvent ? '<div><span>Ближайшее событие</span><b><button type="button" class="featured-event" ' +
+              'data-open-event="' + esc(fEvent.id) + '">' + esc(fEvent.title) + ', ' +
+              esc(eventDayLabel(fEvent.date).toLowerCase()) + '</button></b></div>' : '') +
+          '</div>' +
+          '<div class="featured-ctas">' +
+            '<a class="btn" href="' + pageUrl('venue', featuredId) + '">Смотреть зал</a>' +
+            '<a class="link-more" href="' + pageUrl('menu', featuredId) + '">Меню</a>' +
+          '</div>' +
+        '</div>';
+    }
+
+
+    /* ------------------------------------------------------------------------
+       2. ПЛИТКА ЗАВЕДЕНИЯ
+       ------------------------------------------------------------------------
+       Вынесено в функцию: одна и та же плитка нужна и в общем списке,
+       и в результатах поиска.
+       ------------------------------------------------------------------------ */
+    function venueCardHtml(v, id) {
+      /* Живая цифра: сколько столов сейчас свободно.
+         Считаем прямо из данных зала — отдельно хранить не нужно. */
+      var freeCount = v.hall.tables.filter(function (t) { return t.status === 'free'; }).length;
+
+      var card = document.createElement('a');
+      card.className = 'venue-card reveal';
+      card.href = pageUrl('venue', id);
+
+      /* Купленное первое место в каталоге — с подписью «Реклама» */
+      var top = (v.ads || {}).top;
+
+      card.innerHTML =
+        (venueOnTop(v) ? adLabelHtml(top.paid !== false) : '') +
+        '<div class="venue-cover" style="background-image:url(\'' + esc(v.cover) + '\')"></div>' +
+        '<div class="venue-body">' +
+          '<div class="venue-place">' + esc(v.kitchen) + ' · ' + esc(v.location) + '</div>' +
+          '<h3>' + esc(v.name) + '</h3>' +
+          '<div class="venue-about">' + esc(v.about.short) + '</div>' +
+          '<div class="venue-rows">' +
+            (v.avgCheck ? '<div><span>Средний чек</span><b>' + esc(v.avgCheck) + '</b></div>' : '') +
+            '<div><span>Сейчас свободно</span><b>' + freeCount + ' столов</b></div>' +
+          '</div>' +
+          '<span class="btn">Смотреть зал и меню</span>' +
+        '</div>';
+      return card;
+    }
+
+
+    /* ------------------------------------------------------------------------
+       3. ПОИСК ЗАВЕДЕНИЙ
+       ------------------------------------------------------------------------
+       Ищем по названию, кухне, городу и адресу — по тем данным, что уже есть
+       в venues.js. Список перерисовывается на каждое нажатие клавиши.
+       ------------------------------------------------------------------------ */
+    var grid = document.getElementById('venuesGrid');
+    var searchInput = document.getElementById('venueSearch');
+
+    /* Все поля заведения, по которым имеет смысл искать, склеены в одну
+       строку в нижнем регистре — тогда поиск это одна проверка indexOf. */
+    function searchIndex(v) {
+      return [v.name, v.kitchen, v.city, v.location, v.about.short]
+        .join(' ').toLowerCase();
+    }
+
+    function renderVenues(query) {
+      var q = String(query || '').trim().toLowerCase();
+      grid.innerHTML = '';
+
+      var found = Object.keys(venues).filter(function (id) {
+        return q === '' || searchIndex(venues[id]).indexOf(q) !== -1;
+      });
+
+      /* Заведения с оплаченным первым местом — в начале списка,
+         остальные в прежнем порядке (sort в браузерах устойчивый) */
+      found.sort(function (a, b) {
+        return (venueOnTop(venues[b]) ? 1 : 0) - (venueOnTop(venues[a]) ? 1 : 0);
+      });
+
+      if (found.length === 0) {
+        grid.innerHTML = '<div class="search-empty">Ничего не нашлось по запросу «' + esc(query) + '».<br>' +
+                         'Попробуйте другое название, кухню или город.</div>';
+        return;
+      }
+
+      found.forEach(function (id) { grid.appendChild(venueCardHtml(venues[id], id)); });
+
+      /* Плитку «скоро» показываем только в общем списке:
+         в результатах поиска она была бы шумом. */
+      if (q === '') {
+        var soon = document.createElement('div');
+        soon.className = 'venue-card soon-card reveal';
+        soon.innerHTML =
+          '<div class="big">&#10022;</div>' +
+          '<p><b>Скоро здесь появятся новые заведения</b><br>' +
+          'Астана · Алматы · Шымкент</p>';
+        grid.appendChild(soon);
+      }
+
+      initScrollReveal();   // новые плитки тоже должны проявляться
+    }
+
+    /* Блоки, которые прячем на время поиска — иначе результат тонет
+       среди подборок и статей */
+    var hideWhileSearching = ['featuredHost', 'eventsHead', 'eventsHost', 'topsHost', 'promoFeed', 'statsHead', 'statsHost', 'articlesHead',
+                              'articlesHost', 'contactHead', 'contactHost', 'tilesHost'];
+
+    searchInput.addEventListener('input', function () {
+      renderVenues(searchInput.value);
+
+      var searching = searchInput.value.trim() !== '';
+      /* Прячем классом, а не style.display: иначе после поиска снова
+         появился бы блок, который был скрыт потому, что он пустой */
+      hideWhileSearching.forEach(function (elId) {
+        document.getElementById(elId).classList.toggle('search-hidden', searching);
+      });
+      document.getElementById('venuesHead').querySelector('h2').textContent =
+        searching ? 'Результаты поиска' : 'Где ужинаем сегодня';
+    });
+
+    renderVenues('');
+
+
+    /* ------------------------------------------------------------------------
+       4. ПОДБОРКИ «ПОПУЛЯРНОЕ» И «НОВОЕ»
+       ------------------------------------------------------------------------
+       Демо-структура: списки заданы вручную в platform.tops. Когда появится
+       база, сюда придут настоящие рейтинги — разметка не изменится.
+       ------------------------------------------------------------------------ */
+    var topsHost = document.getElementById('topsHost');
+
+    (platform.tops || []).forEach(function (top) {
+      /* Пропускаем заведения, которых нет в venues — чтобы опечатка
+         в списке не роняла страницу */
+      var list = (top.venues || []).filter(function (id) { return venues[id]; });
+      if (list.length === 0) return;
+
+      var head = document.createElement('div');
+      head.className = 'section-head';
+      head.innerHTML = '<div class="eyebrow lined">Подборка</div>' +
+                       '<h2>' + esc(top.title) +
+                       '<span class="demo-badge">демо-подборка</span></h2>';
+      topsHost.appendChild(head);
+
+      var strip = document.createElement('div');
+      strip.className = 'wrap reveal';
+
+      var inner = document.createElement('div');
+      inner.className = 'top-strip';
+
+      list.forEach(function (id) {
+        var v = venues[id];
+        var score = averageScore(v.reviews);
+
+        var mini = document.createElement('a');
+        mini.className = 'mini-card';
+        mini.href = pageUrl('venue', id);
+        mini.innerHTML =
+          '<div class="mini-cover" style="background-image:url(\'' + esc(v.cover) + '\')"></div>' +
+          '<div class="mini-body">' +
+            '<div class="mini-name">' + esc(v.name) + '</div>' +
+            '<div class="mini-meta">' + esc(v.city) + ' · ' + esc(top.note) + '</div>' +
+            (score ? '<div class="mini-rating">' + starsHtml(score) + ' ' + score + '</div>' : '') +
+          '</div>';
+        inner.appendChild(mini);
+      });
+
+      strip.appendChild(inner);
+      topsHost.appendChild(strip);
+      initStrip(inner);
+    });
+
+
+    /* ------------------------------------------------------------------------
+       5. АКЦИИ — промо всех заведений вперемешку
+       ------------------------------------------------------------------------ */
+    renderPromos(document.getElementById('promoFeed'), mixAllPromos(), true, 'Акции недели');
+
+
+    /* ------------------------------------------------------------------------
+       5.5. ЦИФРЫ ПЛАТФОРМЫ
+       ------------------------------------------------------------------------
+       Считаются из данных всех заведений — с каждым новым заведением
+       цифры растут сами.
+       ------------------------------------------------------------------------ */
+    var всеЗаведения = Object.keys(venues).map(function (id) { return venues[id]; });
+    var сумма = function (fn) {
+      return всеЗаведения.reduce(function (sum, v) { return sum + fn(v); }, 0);
+    };
+
+    document.getElementById('statsHost').innerHTML = statsHtml([
+      { value: сумма(function (v) { return v.hall.tables.length; }),
+        label: 'столов на живой карте' },
+      { value: сумма(function (v) { return v.hall.tables.reduce(function (s, t) { return s + t.seats; }, 0); }),
+        label: 'мест можно забронировать' },
+      { value: сумма(function (v) { return v.menu.reduce(function (s, sec) { return s + sec.items.length; }, 0); }),
+        label: 'блюд с фото и составом' },
+      { value: сумма(function (v) { return (v.promos || []).length; }),
+        label: 'акций на этой неделе' }
+    ], всеЗаведения.map(function (v) { return v.cover; })
+         .concat(всеЗаведения.map(function (v) { return v.menuCover; })));
+
+
+    /* ------------------------------------------------------------------------
+       5.5. АФИША — ближайшие события всех заведений
+       ------------------------------------------------------------------------
+       Берём 8 ближайших. Карточку и окно события рисует app.js.
+       ------------------------------------------------------------------------ */
+    var upcoming = pinnedEventsFirst(allEvents()).slice(0, 8);
+
+    if (upcoming.length === 0) {
+      document.getElementById('eventsHead').style.display = 'none';
+      document.getElementById('eventsHost').style.display = 'none';
+    } else {
+      var homeEvents = document.getElementById('homeEvents');
+      homeEvents.innerHTML = upcoming.map(eventCardHtml).join('');
+      initStrip(homeEvents);
+    }
+
+
+    /* ------------------------------------------------------------------------
+       6. СТАТЬИ — карточки-афиши, как концерты у Délice
+       ------------------------------------------------------------------------ */
+    var articles = platform.articles || [];
+
+    if (articles.length === 0) {
+      document.getElementById('articlesHead').style.display = 'none';
+    } else {
+      var articlesStrip = document.createElement('div');
+      articlesStrip.className = 'events-strip';
+
+      articles.forEach(function (article) {
+        /* Страниц статей пока нет: без адреса карточка — не ссылка,
+           чтобы нажатие не вело «в никуда» */
+        var card = document.createElement(article.href ? 'a' : 'div');
+        card.className = 'event-card';
+        if (article.href) card.href = article.href;
+        card.innerHTML =
+          '<div class="event-head">' +
+            '<h3>' + esc(article.title) + '</h3>' +
+            '<div class="event-tag">' + esc(article.tag) + '</div>' +
+          '</div>' +
+          '<div class="event-media"><span>' + esc(article.emoji || '✦') + '</span></div>' +
+          '<div class="event-text">' + esc(article.excerpt) + '</div>' +
+          '<div class="event-rows">' +
+            '<div><span>Дата</span><b>' + esc(article.date) + '</b></div>' +
+            '<div><span>Рубрика</span><b>' + esc(article.tag) + '</b></div>' +
+          '</div>';
+        articlesStrip.appendChild(card);
+      });
+
+      document.getElementById('articlesHost').appendChild(articlesStrip);
+      initStrip(articlesStrip);
+    }
+
+
+    /* ------------------------------------------------------------------------
+       6.5. СВЯЖИТЕСЬ С НАМИ — раскрывающийся список
+       ------------------------------------------------------------------------
+       Каждая строка — кому мы помогаем. Нажали — под ней раскрылись
+       текст и кнопка, нажали ещё раз — свернулись.
+       ------------------------------------------------------------------------ */
+    var карточкиКонтактов = platform.contactCards || [];
+
+    if (карточкиКонтактов.length === 0) {
+      document.getElementById('contactHead').style.display = 'none';
+      document.getElementById('contactHost').style.display = 'none';
+    } else {
+      var список = document.createElement('div');
+      список.className = 'accordion';
+      список.innerHTML = карточкиКонтактов.map(function (card, i) {
+        return '<div class="acc-item">' +
+            '<button class="acc-head" type="button" aria-expanded="false" aria-controls="acc' + i + '">' +
+              '<span>' + esc(card.title) + '</span><span class="acc-plus" aria-hidden="true"></span>' +
+            '</button>' +
+            '<div class="acc-body" id="acc' + i + '" hidden>' +
+              '<p>' + esc(card.text) + '</p>' +
+              '<a class="btn" href="' + esc(card.href) + '">' + esc(card.action) + '</a>' +
+            '</div>' +
+          '</div>';
+      }).join('');
+      document.getElementById('contactHost').appendChild(список);
+
+      список.querySelectorAll('.acc-head').forEach(function (button) {
+        button.addEventListener('click', function () {
+          var открыт = button.getAttribute('aria-expanded') === 'true';
+          button.setAttribute('aria-expanded', открыт ? 'false' : 'true');
+          document.getElementById(button.getAttribute('aria-controls')).hidden = открыт;
+        });
+      });
+    }
+
+
+    /* ------------------------------------------------------------------------
+       6.8. БОЛЬШИЕ ФОТО-БЛОКИ ПЕРЕД ПОДВАЛОМ
+       ------------------------------------------------------------------------ */
+    var tiles = platform.tiles || [];
+    var tilesHost = document.getElementById('tilesHost');
+
+    if (tiles.length === 0) {
+      tilesHost.style.display = 'none';
+    } else {
+      tilesHost.innerHTML = tiles.map(function (tile) {
+        return '<a class="split-item" href="' + esc(tile.href || '#') + '">' +
+            '<div class="split-media" style="background-image:url(\'' + esc(tile.photo) + '\')"></div>' +
+            '<div class="split-text">' +
+              '<h3>' + esc(tile.title) + '</h3>' +
+              '<p>' + esc(tile.text) + '</p>' +
+              '<span class="btn btn-light">' + esc(tile.link) + '</span>' +
+            '</div>' +
+          '</a>';
+      }).join('');
+    }
+
+
+    // 7. Подвал
+    renderFooter(document.getElementById('siteFooter'));
+
+    // 8. Появление при прокрутке — после того, как всё нарисовано
+    initScrollReveal();
+  </script>
+
+</body>
+</html>

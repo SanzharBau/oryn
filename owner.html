@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кабинет владельца — демо</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Шапку, навигацию, боковое меню и модалку брони рисует app.js -->
+  <div id="nav"></div>
+  <div id="hero"></div>
+  <div id="localNav"></div>
+
+  <div class="page">
+
+    <!-- Предупреждение о демо-данных. Стоит первым намеренно: страницу
+         показывают владельцу заведения, и он должен сразу понимать,
+         что цифры выдуманы, а показан именно вид будущего отчёта. -->
+    <div class="demo-strip">
+      <span class="icon">&#9888;&#65039;</span>
+      <span><b>Это демонстрация.</b> Все цифры на странице выдуманы и нужны только чтобы
+        показать, как будет выглядеть отчёт. Настоящие данные появятся после подключения
+        кассы и системы оплаты.</span>
+    </div>
+
+    <div class="owner-head">
+      <div>
+        <div class="owner-title" id="ownerTitle"></div>
+        <div class="owner-sub" id="ownerSub"></div>
+      </div>
+    </div>
+
+    <!-- Вкладки кабинета. Кнопки рисует owner-analytics.js. -->
+    <div class="filters owner-tabs" id="ownerTabs" role="tablist"></div>
+
+    <!-- ===== ВКЛАДКА «ОБЗОР» ===== -->
+    <section class="owner-pane" data-pane="overview">
+
+    <div class="owner-period">
+      <div class="period-switch" id="periodSwitch"></div>
+    </div>
+
+    <!-- Ключевые показатели -->
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <!-- Выручка по дням -->
+    <div class="block-title">Выручка по дням недели</div>
+    <div class="chart" id="chart"></div>
+
+    <!-- Тепловая карта зала -->
+    <div class="block-title">Прибыльность столов</div>
+    <div class="page-hint">Чем насыщеннее цвет, тем больше стол принёс за период</div>
+    <div class="hall-wrap">
+      <div class="hall-view" id="hallView">
+        <div class="hall" id="hall"></div>
+      </div>
+      <div class="heat-legend">
+        <span>меньше</span>
+        <span class="heat-scale"></span>
+        <span>больше</span>
+      </div>
+    </div>
+
+    <!-- Топ блюд -->
+    <div class="block-title">Топ блюд за период</div>
+    <div class="top-list" id="topDishes"></div>
+
+    <!-- Что появится позже -->
+    <div class="block-title">Появится после подключения кассы</div>
+    <div class="soon-grid">
+      <div class="soon-item">
+        <div class="icon">&#128179;</div>
+        <h4>Контроль оплаты</h4>
+        <p>Статус «оплачено / не оплачено» прямо на схеме зала, без обхода столов.</p>
+      </div>
+      <div class="soon-item">
+        <div class="icon">&#128203;</div>
+        <h4>Экран официанта</h4>
+        <p>Открыть и закрыть стол, увидеть свои столы и статус расчёта.</p>
+      </div>
+      <div class="soon-item">
+        <div class="icon">&#128202;</div>
+        <h4>Отчёт в Google Таблицы</h4>
+        <p>Выручка, чеки и чаевые выгружаются автоматически каждый день.</p>
+      </div>
+      <div class="soon-item">
+        <div class="icon">&#129302;</div>
+        <h4>Помощник в WhatsApp</h4>
+        <p>Отвечает гостям и принимает брони вместо администратора.</p>
+      </div>
+    </div>
+    </section>
+
+    <!-- ===== ОСТАЛЬНЫЕ ВКЛАДКИ — их заполняет owner-analytics.js ===== -->
+    <section class="owner-pane" data-pane="cost"      id="paneCost" hidden></section>
+    <section class="owner-pane" data-pane="tech"      id="paneTech" hidden></section>
+    <section class="owner-pane" data-pane="stock"     id="paneStock" hidden></section>
+    <section class="owner-pane" data-pane="kitchen"   id="paneKitchen" hidden></section>
+    <section class="owner-pane" data-pane="marketing" id="paneMarketing" hidden></section>
+    <section class="owner-pane" data-pane="forecast"  id="paneForecast" hidden></section>
+  </div>
+
+  <footer id="siteFooter"></footer>
+
+  <script src="venues.js"></script>
+  <script src="app.js"></script>
+  <script>
+    /* ========================================================================
+       КАБИНЕТ ВЛАДЕЛЬЦА — ДЕМОНСТРАЦИЯ
+       ------------------------------------------------------------------------
+       Страница показывает заведению, что оно будет видеть после подключения
+       кассы. Настоящих данных нет и быть не может — сервера ещё нет.
+
+       ВАЖНО, почему выдуманные числа лежат здесь, а не в venues.js:
+       в файле данных они однажды сойдут за настоящие и попадут в реальный
+       отчёт. Пусть демо-цифры живут на самой демо-странице.
+       ======================================================================== */
+
+    var venue = initVenuePage('owner');
+
+    document.getElementById('ownerTitle').textContent = 'Отчёт за период';
+    document.getElementById('ownerSub').textContent =
+      venue.name + ' · ' + venue.location;
+
+
+    /* ------------------------------------------------------------------------
+       1. ГЕНЕРАТОР ДЕМО-ЧИСЕЛ
+       ------------------------------------------------------------------------
+       Числа считаются из строки-ключа, а не берутся случайно. Благодаря
+       этому они одинаковые при каждом открытии: на показе заведению цифры
+       не должны прыгать при обновлении страницы.
+       ------------------------------------------------------------------------ */
+    function demoNumber(key, min, max) {
+      var hash = 0;
+      for (var i = 0; i < key.length; i++) {
+        hash = (hash * 31 + key.charCodeAt(i)) % 1000000;
+      }
+      return min + (hash % (max - min + 1));
+    }
+
+    /* 1234567 → «1 234 567» */
+    function money(n) {
+      return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+
+
+    /* ------------------------------------------------------------------------
+       2. ПЕРЕКЛЮЧАТЕЛЬ ПЕРИОДА
+       ------------------------------------------------------------------------ */
+    var PERIODS = [
+      { id: 'week',  title: 'Неделя',  days: 7 },
+      { id: 'month', title: 'Месяц',   days: 30 },
+      { id: 'year',  title: 'Год',     days: 365 }
+    ];
+    var currentPeriod = PERIODS[1];   // по умолчанию месяц
+
+    var switchHost = document.getElementById('periodSwitch');
+
+    PERIODS.forEach(function (period) {
+      var button = document.createElement('button');
+      button.textContent = period.title;
+      if (period.id === currentPeriod.id) button.className = 'active';
+
+      button.addEventListener('click', function () {
+        currentPeriod = period;
+        [].forEach.call(switchHost.children, function (b) { b.classList.remove('active'); });
+        button.classList.add('active');
+        renderKpi();     // показатели пересчитываются под период
+      });
+
+      switchHost.appendChild(button);
+    });
+
+
+    /* ------------------------------------------------------------------------
+       3. КЛЮЧЕВЫЕ ПОКАЗАТЕЛИ
+       ------------------------------------------------------------------------ */
+    function renderKpi() {
+      var days = currentPeriod.days;
+      var чеков = Math.round(demoNumber('checks' + venue.id, 55, 80) * days / 7);
+      var среднийЧек = demoNumber('avg' + venue.id, 5600, 7400);
+
+      var показатели = [
+        { label: 'Выручка',        value: money(чеков * среднийЧек) + ' ₸', delta: '+12%', up: true },
+        { label: 'Средний чек',    value: money(среднийЧек) + ' ₸',         delta: '+4%',  up: true },
+        { label: 'Чеков',          value: money(чеков),                     delta: '+8%',  up: true },
+        { label: 'Оборачиваемость', value: '1,9 посадки',                   delta: '−3%',  up: false },
+        { label: 'Загрузка зала',  value: demoNumber('load' + venue.id, 61, 78) + '%', delta: '+6%', up: true }
+      ];
+
+      document.getElementById('kpiGrid').innerHTML = показатели.map(function (k) {
+        return '<div class="kpi">' +
+            '<div class="kpi-label">' + esc(k.label) + '</div>' +
+            '<div class="kpi-value">' + esc(k.value) + '</div>' +
+            '<div class="kpi-delta ' + (k.up ? 'up' : 'down') + '">' + esc(k.delta) +
+              ' к прошлому периоду</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    renderKpi();
+
+
+    /* ------------------------------------------------------------------------
+       4. ВЫРУЧКА ПО ДНЯМ НЕДЕЛИ
+       ------------------------------------------------------------------------ */
+    var ДНИ = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+    var суммы = ДНИ.map(function (день) {
+      return demoNumber('day' + день + venue.id, 180, 520);   // тысяч тенге
+    });
+    var максимум = Math.max.apply(null, суммы);
+
+    document.getElementById('chart').innerHTML = ДНИ.map(function (день, i) {
+      var высота = Math.round((суммы[i] / максимум) * 100);
+      return '<div class="chart-col" title="' + суммы[i] + ' тыс ₸">' +
+          '<div class="chart-bar" style="height:' + высота + '%"></div>' +
+          '<div class="chart-label">' + день + '</div>' +
+        '</div>';
+    }).join('');
+
+
+    /* ------------------------------------------------------------------------
+       5. ТЕПЛОВАЯ КАРТА ЗАЛА
+       ------------------------------------------------------------------------
+       Берём ту же схему из venues.js, что и на странице гостя, но красим
+       столы не по статусу, а по «выручке». Владелец сразу видит, какие
+       места работают, а какие простаивают.
+       ------------------------------------------------------------------------ */
+    var hall = document.getElementById('hall');
+    var hallView = document.getElementById('hallView');
+
+    hall.style.width = venue.hall.width + 'px';
+    hall.style.height = venue.hall.height + 'px';
+
+    function place(el, data) {
+      ['top', 'bottom', 'left', 'right'].forEach(function (side) {
+        if (data[side] !== undefined) el.style[side] = data[side] + 'px';
+      });
+    }
+
+    (venue.hall.decor || []).forEach(function (item) {
+      var el = document.createElement('div');
+      el.className = 'decor' + (item.shape === 'round' ? ' round' : '');
+      if (item.width) el.style.width = item.width + 'px';
+      if (item.height) el.style.height = item.height + 'px';
+      place(el, item);
+      el.textContent = item.text;
+      hall.appendChild(el);
+    });
+
+    (venue.hall.zones || []).forEach(function (zone) {
+      var el = document.createElement('div');
+      el.className = 'zone-label';
+      place(el, zone);
+      el.textContent = zone.text;
+      hall.appendChild(el);
+    });
+
+    /* --- Подбор читаемого цвета текста ---------------------------------------
+       Заливка стола — фирменный цвет разной плотности. В середине диапазона
+       она такая, что белый текст на ней уже не читается, а тёмный ещё не
+       читается. Поэтому не угадываем по порогу, а считаем: смешиваем цвет
+       с фоном зала и берём тот текст, который даёт больший контраст.
+       ------------------------------------------------------------------------ */
+    function hexToArray(hex) {
+      var h = String(hex).replace('#', '');
+      var n = parseInt(h, 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+
+    /* Полупрозрачный цвет поверх фона → сплошной цвет */
+    function blend(color, alpha, background) {
+      var f = hexToArray(color), b = hexToArray(background);
+      return [0, 1, 2].map(function (i) {
+        return Math.round(f[i] * alpha + b[i] * (1 - alpha));
+      });
+    }
+
+    function luminance(rgb) {
+      var p = rgb.map(function (v) {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * p[0] + 0.7152 * p[1] + 0.0722 * p[2];
+    }
+
+    function contrast(a, b) {
+      var x = luminance(a), y = luminance(b);
+      return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+    }
+
+    var БЕЛЫЙ = [255, 255, 255];
+    var ТЁМНЫЙ = hexToArray(platform.theme.text);
+
+    /* Выручка стола зависит от числа мест: диван приносит больше барного стула */
+    venue.hall.tables.forEach(function (table) {
+      var выручка = demoNumber('rev' + table.id, 40, 100) * table.seats;
+      var доля = Math.min(1, выручка / 400);          // 0…1 — насыщенность заливки
+      var заливка = blend(platform.theme.accent, 0.15 + доля * 0.85, platform.theme.surface);
+
+      var el = document.createElement('div');
+      el.className = 'table heat' + (table.type === 'seat' ? ' seat' : '');
+      place(el, table);
+      el.textContent = table.id;
+      el.title = table.id + ' · ' + выручка + ' тыс ₸ за период';
+
+      el.style.backgroundColor = 'rgb(' + заливка.join(',') + ')';
+      el.style.color = contrast(БЕЛЫЙ, заливка) >= contrast(ТЁМНЫЙ, заливка)
+        ? '#FFFFFF'
+        : platform.theme.text;
+
+      hall.appendChild(el);
+    });
+
+    /* Схема сжимается под ширину экрана — как на странице гостя */
+    function fitHall() {
+      var scale = Math.min(1, hallView.clientWidth / hall.offsetWidth);
+      hall.style.transform = 'scale(' + scale + ')';
+      hallView.style.height = (hall.offsetHeight * scale) + 'px';
+    }
+    fitHall();
+    window.addEventListener('resize', fitHall);
+
+
+    /* ------------------------------------------------------------------------
+       6. ТОП БЛЮД
+       ------------------------------------------------------------------------
+       Названия берём настоящие из меню, а «продажи» выдумываем. Так владелец
+       видит отчёт со своими блюдами — это убедительнее абстрактных примеров.
+       ------------------------------------------------------------------------ */
+    var всеБлюда = [];
+    venue.menu.forEach(function (section) {
+      section.items.forEach(function (dish) { всеБлюда.push(dish); });
+    });
+
+    var топ = всеБлюда
+      .map(function (dish) {
+        return { name: dish.name, seed: demoNumber('sold' + dish.name, 1, 999) };
+      })
+      .sort(function (a, b) { return b.seed - a.seed; })
+      .slice(0, 8)
+      /* Значения расставляем по месту в списке, а не берём сырые.
+         Если просто отсортировать случайные числа, верхние восемь окажутся
+         почти равными (257, 255, 254…) — и все полоски будут одной длины.
+         Убывание на 12% за шаг даёт явного лидера, как в настоящем отчёте. */
+      .map(function (item, i) {
+        return { name: item.name, sold: Math.round(310 * Math.pow(0.88, i)) + (item.seed % 9) };
+      });
+
+    var максПродаж = топ[0].sold;
+
+    document.getElementById('topDishes').innerHTML = топ.map(function (item, i) {
+      return '<div class="top-row">' +
+          
+          '<span class="name">' + esc(item.name) + '</span>' +
+          '<span class="bar-track">' +
+            '<span class="bar-fill" style="width:' + Math.round((item.sold / максПродаж) * 100) + '%"></span>' +
+          '</span>' +
+          '<span class="val">' + item.sold + ' шт</span>' +
+        '</div>';
+    }).join('');
+  </script>
+
+  <!-- Демо-цифры и вкладки аналитики: себестоимость, техкарты, склад,
+       кухня, маркетинг, прогноз. Подключаются после основного скрипта —
+       им нужны venue и money отсюда. -->
+  <script src="owner-demo.js"></script>
+  <script src="owner-analytics.js"></script>
+
+</body>
+</html>

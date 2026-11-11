@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Меню</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Шапку, навигацию, боковое меню и модалку брони рисует app.js -->
+  <div id="nav"></div>
+  <div id="hero"></div>
+  <div id="localNav"></div>
+
+  <!-- РЕКОМЕНДУЕМ — плитки едут влево, при наведении останавливаются -->
+  <div class="reco-wrap" id="recoWrap">
+    <div class="eyebrow lined">Шеф советует</div>
+    <div class="reco-title">Рекомендуем</div>
+    <div class="reco-track-mask">
+      <div class="reco-track" id="recoTrack"></div>
+    </div>
+  </div>
+
+  <!-- Кнопки-фильтры разделов -->
+  <div class="filters" id="filters"></div>
+
+  <!-- Сообщение о блюдах на стопе. Пусто — блок не показывается. -->
+  <div class="stop-note" id="stopNote"></div>
+
+  <!-- Сюда скрипт рисует все разделы меню -->
+  <div class="container" id="menuRoot"></div>
+
+  <footer id="siteFooter"></footer>
+
+  <!-- Окно блюда. Заполняется при клике по карточке. -->
+  <div class="overlay" id="dishOverlay">
+    <div class="modal">
+      <button class="close-btn" id="dishCloseBtn" aria-label="Закрыть">&times;</button>
+      <!-- Сюда скрипт кладёт фото блюда или цветную заглушку -->
+      <div id="dishImgHost"></div>
+      <div class="modal-body">
+        <h2 id="dishName"></h2>
+        <div class="modal-price" id="dishPrice"></div>
+        <!-- Время приготовления. Пусто — строка не показывается. -->
+        <div id="dishCookTime"></div>
+        <!-- Крупное описание под изображением, ключевые слова жирным -->
+        <div class="dish-lead" id="dishLead"></div>
+        <!-- Граммовка и БЖУ. Пусто, если у блюда их ещё нет. -->
+        <div id="dishNutrition"></div>
+        <div class="block-label">Состав</div>
+        <p id="dishCompo"></p>
+        <div id="dishStop"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="venues.js"></script>
+  <script src="app.js"></script>
+  <script>
+    /* ========================================================================
+       СТРАНИЦА МЕНЮ
+       ------------------------------------------------------------------------
+       Общее (шапка, навигация, боковое меню, бронь) берём из app.js.
+       Здесь — только рисование меню и окно блюда.
+       ======================================================================== */
+
+    var venue = initVenuePage('menu');   // одна строка собирает всю общую обвязку
+
+    var dishOverlay = document.getElementById('dishOverlay');
+
+
+    /* Функция dishImageHtml переехала в app.js: картинка блюда теперь нужна
+       и здесь, и в превью меню на странице заведения. */
+
+
+    /* ------------------------------------------------------------------------
+       1. РАЗДЕЛЫ И КАРТОЧКИ БЛЮД
+       ------------------------------------------------------------------------ */
+    var root = document.getElementById('menuRoot');
+
+    venue.menu.forEach(function (section) {
+      /* Заголовок раздела. id нужен кнопкам-фильтрам, чтобы прокрутить сюда. */
+      var title = document.createElement('div');
+      title.className = 'section-title';
+      title.id = 'sec-' + section.id;
+      title.textContent = section.section;
+      root.appendChild(title);
+
+      var sub = document.createElement('div');
+      sub.className = 'section-sub';
+      sub.textContent = section.sub;
+      root.appendChild(sub);
+
+      var grid = document.createElement('div');
+      grid.className = 'menu-grid';
+      root.appendChild(grid);
+
+      section.items.forEach(function (dish) {
+        var card = document.createElement('div');
+        card.className = 'card' + (dish.stop ? ' stopped' : '');
+        card.innerHTML =
+          dishImageHtml(dish, section.color, 'in-card') +
+          '<h3>' + esc(dish.name) + '</h3>' +
+          '<div class="desc">' + esc(dish.compo) + '</div>' +
+          '<div class="price">' + esc(dish.price) + '</div>' +
+          '<div class="more">Подробнее &rarr;</div>';
+        card.addEventListener('click', function () { openDish(dish, section.color); });
+        grid.appendChild(card);
+      });
+    });
+
+
+    /* ------------------------------------------------------------------------
+       2. КНОПКИ-ФИЛЬТРЫ — плавно прокручивают к разделу
+       ------------------------------------------------------------------------ */
+    var filters = document.getElementById('filters');
+
+    venue.menu.forEach(function (section) {
+      var button = document.createElement('button');
+      button.className = 'filter-btn';
+      button.textContent = section.section;
+      button.addEventListener('click', function () {
+        document.getElementById('sec-' + section.id).scrollIntoView({ behavior: 'smooth' });
+      });
+      filters.appendChild(button);
+    });
+
+
+    /* ------------------------------------------------------------------------
+       3. БЛОК «РЕКОМЕНДУЕМ»
+       ------------------------------------------------------------------------
+       В данных лежит список названий. Находим по ним сами блюда, чтобы
+       не дублировать цену и описание во втором месте.
+       ------------------------------------------------------------------------ */
+
+    /* Собираем все блюда из всех разделов в один плоский список.
+       Вместе с блюдом запоминаем цвет его раздела — он нужен заглушке. */
+    var allDishes = [];
+    venue.menu.forEach(function (section) {
+      section.items.forEach(function (dish) {
+        allDishes.push({ dish: dish, color: section.color });
+      });
+    });
+
+    var reco = (venue.recommended || [])
+      .map(function (name) {
+        return allDishes.filter(function (item) { return item.dish.name === name; })[0];
+      })
+      /* Пропускаем опечатки в названиях и блюда на стопе:
+         советовать то, чего сегодня нет, — верный способ расстроить гостя. */
+      .filter(function (item) { return item && !item.dish.stop; });
+
+    if (reco.length === 0) {
+      /* Нечего показывать — прячем блок целиком, чтобы не висел пустой заголовок */
+      document.getElementById('recoWrap').style.display = 'none';
+    } else {
+      var track = document.getElementById('recoTrack');
+
+      /* Список идёт дважды подряд. Анимация сдвигает ленту ровно на половину —
+         в этот момент вторая копия стоит там же, где была первая, и склейка
+         не видна. Так прокрутка выглядит бесконечной.
+         Если блюд мало, сначала размножаем список, чтобы половина ленты
+         была шире экрана — иначе в конце круга мелькала бы пустота. */
+      var половина = reco;
+      while (половина.length < 8) половина = половина.concat(reco);
+      половина.concat(половина).forEach(function (item) {
+        var dish = item.dish;
+        var card = document.createElement('div');
+        card.className = 'reco-card';
+        card.innerHTML =
+          dishImageHtml(dish, item.color, 'in-reco') +
+          '<div class="rc-name">' + esc(dish.name) + '</div>' +
+          '<div class="rc-price">' + esc(dish.price) + '</div>';
+        card.addEventListener('click', function () { openDish(dish, item.color); });
+        track.appendChild(card);
+      });
+    }
+
+
+    /* ------------------------------------------------------------------------
+       3.5. СТРОКА О СТОП-ЛИСТЕ
+       ------------------------------------------------------------------------
+       Считаем помеченные блюда и предупреждаем сразу, до прокрутки меню.
+       ------------------------------------------------------------------------ */
+    var stopped = allDishes.filter(function (item) { return item.dish.stop; });
+
+    if (stopped.length > 0) {
+      var слово = stopped.length === 1 ? 'блюдо' : 'блюда';
+      document.getElementById('stopNote').textContent =
+        stopped.length + ' ' + слово + ' сегодня на стопе: ' +
+        stopped.map(function (item) { return item.dish.name; }).join(', ');
+    }
+
+
+    /* ------------------------------------------------------------------------
+       4. ОКНО БЛЮДА
+       ------------------------------------------------------------------------ */
+    function openDish(dish, color) {
+      /* Крупный обзор: вращение по кадрам, статичное фото или заглушка —
+         выбор делает сам dishViewerHtml по данным блюда. */
+      var host = document.getElementById('dishImgHost');
+      host.innerHTML = dishCarouselHtml(dish, color);
+      initDishCarousel(host.querySelector('.dish-carousel'));
+      /* Вращение живёт на первом слайде — там же, где само блюдо */
+      initDishRotator(host.querySelector('.dish-slide .dish-view'), dish.frames);
+
+      document.getElementById('dishName').textContent = dish.name;
+      document.getElementById('dishPrice').textContent = dish.price;
+      document.getElementById('dishCookTime').innerHTML = dish.cookTime
+        ? '<span class="cook-time">&#128336; Готовим ' + esc(dish.cookTime) + '</span>'
+        : '';
+      document.getElementById('dishLead').innerHTML = highlightHtml(dish.concept, dish.highlight);
+      document.getElementById('dishNutrition').innerHTML = nutritionHtml(dish.nutrition);
+      document.getElementById('dishCompo').textContent = dish.compo;
+
+      /* Блюдо на стопе — говорим об этом прямо, а не прячем карточку */
+      document.getElementById('dishStop').innerHTML = dish.stop
+        ? '<div class="stop-warning">Сегодня это блюдо не подают — закончились продукты. ' +
+          'Уточните у администратора, когда оно вернётся в меню.</div>'
+        : '';
+
+      dishOverlay.classList.add('open');
+      document.body.classList.add('no-scroll');
+    }
+
+    function closeDish() {
+      dishOverlay.classList.remove('open');
+      document.body.classList.remove('no-scroll');
+    }
+
+    document.getElementById('dishCloseBtn').addEventListener('click', closeDish);
+
+    /* Клик по тёмному фону закрывает; клик по самому окну — нет */
+    dishOverlay.addEventListener('click', function (e) {
+      if (e.target === dishOverlay) closeDish();
+    });
+
+    /* Esc закрывает окно блюда (бронь и боковое меню обрабатывает app.js) */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && dishOverlay.classList.contains('open')) closeDish();
+    });
+  </script>
+
+</body>
+</html>

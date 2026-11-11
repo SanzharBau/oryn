@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Карта зала</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Шапка, фото на весь экран и полоса разделов под ним.
+       Всё это рисует app.js. -->
+  <div id="nav"></div>
+  <div id="hero"></div>
+  <div id="localNav"></div>
+
+  <div class="page">
+
+    <!-- ================= ОБЗОР ================= -->
+    <div id="sec-overview" class="section-anchor">
+      <div class="about-block" id="aboutBlock"></div>
+    </div>
+
+    <!-- Акции этого заведения -->
+    <div id="promoBlock"></div>
+
+    <!-- ================= СОБЫТИЯ ================= -->
+    <!-- Афиша заведения: концерты, стендап, открытия. Нет событий — блок скрыт. -->
+    <div id="sec-events" class="section-anchor">
+      <div class="eyebrow lined">Афиша</div>
+      <div class="block-title">События<span class="demo-badge">демо</span></div>
+      <div class="events-strip ev-strip" id="venueEvents"></div>
+      <div class="ev-all"><a class="link-more" href="events.html">Вся афиша города</a></div>
+    </div>
+
+    <!-- Панорама зала. Пока заглушка — место под будущий плеер 360. -->
+    <div class="eyebrow lined">Скоро</div>
+    <div class="block-title">360° обзор зала</div>
+    <div class="panorama-stub">
+      <div class="icon">&#127756;</div>
+      <div class="label">360° обзор зала — скоро</div>
+      <div class="note">Здесь появится панорама: можно будет осмотреть зал с места
+        конкретного стола перед тем, как его забронировать.</div>
+    </div>
+
+    <!-- Карта зала — на светлой бумажной полосе во всю ширину -->
+    <section class="band-paper" id="hallBand">
+    <div class="eyebrow lined">Живая карта</div>
+    <div class="block-title">Карта зала</div>
+    <div class="page-hint">Нажмите на стол, чтобы увидеть информацию и забронировать</div>
+
+    <!-- Сводка: сколько столов в каком статусе -->
+    <div class="hall-stats" id="hallStats"></div>
+
+    <div class="layout">
+      <div class="hall-wrap">
+        <!-- .hall-view — окно, в котором схема сжимается на узком экране -->
+        <div class="hall-view" id="hallView">
+          <div class="hall" id="hall"></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="panel" id="panel"></div>
+    </div>
+    </section>
+
+    <!-- ================= МЕНЮ ================= -->
+    <div id="sec-menu" class="section-anchor">
+      <div class="eyebrow lined">Кухня</div>
+      <div class="block-title">Меню</div>
+      <div class="menu-grid" id="menuPreview"></div>
+
+      <div class="menu-cta">
+        <div>
+          <div class="menu-cta-title">Полное меню</div>
+          <div class="menu-cta-text" id="menuCtaText"></div>
+        </div>
+        <a class="btn" id="menuCtaLink">Смотреть меню</a>
+      </div>
+    </div>
+
+    <!-- ================= ОТЗЫВЫ ================= -->
+    <div id="sec-reviews" class="section-anchor">
+      <div class="eyebrow lined">Гости о нас</div>
+      <div class="block-title">Отзывы<span class="demo-badge">демо-данные</span></div>
+      <div id="reviewsHost"></div>
+    </div>
+
+    <!-- ================= ФОТО ================= -->
+    <div id="sec-photos" class="section-anchor">
+      <div class="eyebrow lined">Атмосфера</div>
+      <div class="block-title">Фото</div>
+      <div class="photo-grid" id="photoGrid"></div>
+    </div>
+
+    <!-- ================= ДЕТАЛИ ================= -->
+    <div id="sec-details" class="section-anchor">
+      <div class="eyebrow lined">Как нас найти</div>
+      <div class="block-title">Детали</div>
+      <!-- Круглые «печати» с главными цифрами заведения -->
+      <div id="detailsStats"></div>
+      <div class="details-grid" id="detailsGrid"></div>
+      <div class="map-frame" id="mapFrame"></div>
+    </div>
+  </div>
+
+  <footer id="siteFooter"></footer>
+
+  <script src="venues.js"></script>
+  <script src="app.js"></script>
+  <script>
+    /* ========================================================================
+       СТРАНИЦА ЗАВЕДЕНИЯ — КАРТА ЗАЛА
+       ------------------------------------------------------------------------
+       Общее (шапка, навигация, боковое меню, бронь) берём из app.js.
+       Здесь — только то, что есть на этой странице: рисование зала.
+       ======================================================================== */
+
+    var venue = initVenuePage('hall');   // одна строка собирает всю общую обвязку
+
+
+    /* ------------------------------------------------------------------------
+       0.1. СЛОГАН И ИСТОРИЯ
+       ------------------------------------------------------------------------ */
+    var about = venue.about || {};
+    /* Красный блок, как «Les menus» у Délice: подпись с линиями по бокам,
+       крупная фраза, история и круглые фото заведения по краям */
+    document.getElementById('aboutBlock').innerHTML =
+      '<div class="eyebrow lined">О заведении</div>' +
+      (about.tagline ? '<div class="about-tagline">' + esc(about.tagline) + '</div>' : '') +
+      (about.story   ? '<div class="about-story">'   + esc(about.story)   + '</div>' : '') +
+      '<button class="btn btn-light" type="button" id="aboutBookBtn">Забронировать стол</button>';
+    document.getElementById('sec-overview').insertAdjacentHTML('beforeend',
+      circlePhotosHtml([venue.menuCover, about.heroPhoto || venue.cover, venue.menuCover]));
+    document.getElementById('aboutBookBtn').addEventListener('click', function () { openBooking(null); });
+
+
+    /* ------------------------------------------------------------------------
+       0.15. ВКЛАДКИ-НАВИГАЦИЯ
+       ------------------------------------------------------------------------
+       Клик прокручивает к разделу. Активная вкладка подсвечивается сама,
+       когда раздел доезжает до верха экрана — за этим следит
+       IntersectionObserver, тот же механизм, что и у появления карточек.
+       ------------------------------------------------------------------------ */
+    var TABS = [
+      { id: 'sec-overview', title: 'Обзор' },
+      { id: 'sec-events',   title: 'События' },
+      { id: 'sec-menu',     title: 'Меню' },
+      { id: 'sec-reviews',  title: 'Отзывы' },
+      { id: 'sec-photos',   title: 'Фото' },
+      { id: 'sec-details',  title: 'Детали' }
+    ];
+
+    var tabsHost = document.getElementById('venueTabs');
+
+    TABS.forEach(function (tab, index) {
+      var link = document.createElement('a');
+      link.href = '#' + tab.id;
+      link.textContent = tab.title;
+      link.dataset.target = tab.id;
+      if (index === 0) link.className = 'active';
+
+      link.addEventListener('click', function (e) {
+        e.preventDefault();   // не даём адресу страницы обрасти якорем
+        document.getElementById(tab.id).scrollIntoView({ behavior: 'smooth' });
+        setActiveTab(tab.id); // подсвечиваем сразу, не дожидаясь прокрутки
+      });
+
+      tabsHost.appendChild(link);
+    });
+
+    function setActiveTab(id) {
+      [].forEach.call(tabsHost.children, function (link) {
+        link.classList.toggle('active', link.dataset.target === id);
+      });
+    }
+
+    /* Какой раздел сейчас наверху.
+       Считаем напрямую, а не через IntersectionObserver: тому нужна зона
+       наблюдения в процентах от высоты окна, и на низком экране она
+       схлопывается в ноль — подсветка просто перестаёт работать.
+       Пять замеров на прокрутку стоят дёшево и ведут себя предсказуемо. */
+    function updateActiveTab() {
+      var line = 130;              // граница чуть ниже навигации и вкладок
+      var current = TABS[0].id;
+
+      TABS.forEach(function (tab) {
+        var el = document.getElementById(tab.id);
+        if (!el || el.offsetParent === null) return;   // скрытый раздел пропускаем
+        if (el.getBoundingClientRect().top <= line) current = tab.id;
+      });
+
+      setActiveTab(current);
+    }
+
+    window.addEventListener('scroll', updateActiveTab, { passive: true });
+
+
+    /* ------------------------------------------------------------------------
+       0.2. МЕНЮ: превью и переход к полному
+       ------------------------------------------------------------------------
+       В превью показываем блюда из списка «Рекомендуем» — они уже отобраны
+       вручную. Количество блюд и разделов считаем из данных, чтобы подпись
+       не разошлась с реальным меню.
+       ------------------------------------------------------------------------ */
+    var dishCount = venue.menu.reduce(function (sum, section) {
+      return sum + section.items.length;
+    }, 0);
+
+    document.getElementById('menuCtaText').textContent =
+      dishCount + ' блюд в ' + venue.menu.length + ' разделах — от первого акта до малых номеров';
+    document.getElementById('menuCtaLink').href = pageUrl('menu', venue.id);
+
+    /* Ищем рекомендованные блюда по названию, попутно запоминая цвет раздела */
+    var preview = [];
+    venue.menu.forEach(function (section) {
+      section.items.forEach(function (dish) {
+        /* Блюда на стопе в превью не показываем — как и в «Рекомендуем» */
+        if (!dish.stop && (venue.recommended || []).indexOf(dish.name) !== -1) {
+          preview.push({ dish: dish, color: section.color });
+        }
+      });
+    });
+
+    var menuPreview = document.getElementById('menuPreview');
+    preview.slice(0, 4).forEach(function (item) {
+      var card = document.createElement('a');
+      card.className = 'card';
+      card.href = pageUrl('menu', venue.id);
+      card.innerHTML =
+        dishImageHtml(item.dish, item.color, 'in-card') +
+        '<h3>' + esc(item.dish.name) + '</h3>' +
+        '<div class="desc">' + esc(item.dish.compo) + '</div>' +
+        '<div class="price">' + esc(item.dish.price) + '</div>';
+      menuPreview.appendChild(card);
+    });
+
+
+    /* ------------------------------------------------------------------------
+       0.17. ОТЗЫВЫ
+       ------------------------------------------------------------------------
+       Средний балл считаем из самих отзывов, а не храним отдельным полем —
+       иначе однажды разойдётся с содержимым.
+       ------------------------------------------------------------------------ */
+    var reviews = venue.reviews || [];
+    var reviewsHost = document.getElementById('reviewsHost');
+
+    if (reviews.length === 0) {
+      document.getElementById('sec-reviews').style.display = 'none';
+    } else {
+      var score = averageScore(reviews);
+
+      var summary = '<div class="rating-summary">' +
+          '<div class="rating-score">' + score + '</div>' +
+          '<div>' + starsHtml(score) +
+            '<div class="rating-count">' + reviews.length + ' отзыва о заведении</div>' +
+          '</div>' +
+        '</div>';
+
+      var cards = reviews.map(function (r) {
+        return '<div class="review-card">' +
+            '<div class="review-head">' +
+              '<span class="review-author">' + esc(r.author) + '</span>' +
+              '<span class="review-date">' + esc(r.date) + '</span>' +
+            '</div>' +
+            starsHtml(r.score) +
+            '<div class="review-text">' + esc(r.text) + '</div>' +
+          '</div>';
+      }).join('');
+
+      reviewsHost.innerHTML = summary + '<div class="reviews-grid">' + cards + '</div>';
+    }
+
+
+    /* ------------------------------------------------------------------------
+       0.18. ФОТО
+       ------------------------------------------------------------------------ */
+    var photos = venue.photos || [];
+    var photoGrid = document.getElementById('photoGrid');
+
+    if (photos.length === 0) {
+      document.getElementById('sec-photos').style.display = 'none';
+    } else {
+      photos.forEach(function (photo) {
+        var item = document.createElement('div');
+        item.className = 'photo-item';
+        item.style.backgroundImage = 'url(\'' + photo.src + '\')';
+        item.innerHTML = photo.caption ? '<div class="cap">' + esc(photo.caption) + '</div>' : '';
+        photoGrid.appendChild(item);
+      });
+    }
+
+
+    /* ------------------------------------------------------------------------
+       0.19. ДЕТАЛИ
+       ------------------------------------------------------------------------
+       Пустые поля пропускаем — блок не должен показывать прочерки.
+       ------------------------------------------------------------------------ */
+    var seatsTotal = venue.hall.tables.reduce(function (sum, t) { return sum + t.seats; }, 0);
+
+    var details = [
+      { label: 'Адрес',        value: venue.contacts.address },
+      { label: 'Время работы', value: venue.contacts.hours },
+      { label: 'Телефон',      value: venue.contacts.phone },
+      { label: 'Кухня',        value: venue.kitchen },
+      { label: 'Средний чек',  value: venue.avgCheck },
+      { label: 'Мест в зале',  value: seatsTotal + ' за ' + venue.hall.tables.length + ' столами' }
+    ];
+
+    /* Главные цифры — круглыми «печатями» поверх фото, как у Délice.
+       Всё считается из данных зала и меню, вручную ничего не пишем. */
+    var dishTotal = venue.menu.reduce(function (sum, s) { return sum + s.items.length; }, 0);
+    document.getElementById('detailsStats').innerHTML = statsHtml([
+      { value: venue.hall.tables.length, label: 'столов в зале' },
+      { value: seatsTotal,               label: 'мест для гостей' },
+      { value: dishTotal,                label: 'блюд в меню' },
+      { value: venue.menu.length,        label: 'разделов кухни' }
+    ], [venue.cover, venue.menuCover]);
+
+    document.getElementById('detailsGrid').innerHTML = details
+      .filter(function (d) { return d.value; })
+      .map(function (d) {
+        return '<div class="detail-item">' +
+            '<div class="detail-label">' + esc(d.label) + '</div>' +
+            '<div class="detail-value">' + esc(d.value) + '</div>' +
+          '</div>';
+      }).join('');
+
+
+    /* ------------------------------------------------------------------------
+       0.25. КАРТА «КАК ДОБРАТЬСЯ»
+       ------------------------------------------------------------------------
+       Есть ссылка на встроенную карту — показываем саму карту 2ГИС.
+       Нет — аккуратную заглушку с адресом и кнопкой в 2ГИС, если она есть.
+       Так блок выглядит законченным даже с незаполненными данными.
+       ------------------------------------------------------------------------ */
+    var contacts = venue.contacts || {};
+    var mapFrame = document.getElementById('mapFrame');
+
+    if (contacts.mapEmbed) {
+      /* loading="lazy" — карта грузится, только когда до неё домотали.
+         Без этого тяжёлый виджет тормозил бы открытие всей страницы. */
+      mapFrame.innerHTML =
+        '<iframe src="' + esc(contacts.mapEmbed) + '" ' +
+                'title="Карта проезда — ' + esc(venue.name) + '" ' +
+                'loading="lazy" referrerpolicy="no-referrer-when-downgrade" ' +
+                'allowfullscreen></iframe>';
+    } else {
+      mapFrame.innerHTML =
+        '<div class="map-stub">' +
+          '<div class="icon">&#128506;</div>' +
+          '<div class="addr">' + esc(contacts.address || venue.location) + '</div>' +
+          '<div class="note">Здесь появится карта проезда. Чтобы её включить, ' +
+            'вставьте ссылку в поле <b>mapEmbed</b> в venues.js.</div>' +
+          (contacts.map2gis
+            ? '<a class="btn" href="' + esc(contacts.map2gis) + '" target="_blank" rel="noopener">Открыть в 2ГИС</a>'
+            : '') +
+        '</div>';
+    }
+
+
+    /* ------------------------------------------------------------------------
+       0.3. АКЦИИ ЭТОГО ЗАВЕДЕНИЯ
+       ------------------------------------------------------------------------
+       Тот же вид баннеров, что и на главной, но без пометки «чьё это» —
+       мы уже внутри заведения. false как раз это и отключает.
+       ------------------------------------------------------------------------ */
+    var ownPromos = (venue.promos || []).map(function (promo) {
+      return { promo: promo, venueId: venue.id };
+    });
+
+    if (ownPromos.length > 0) {
+      var promoBlock = document.getElementById('promoBlock');
+      renderPromos(promoBlock, ownPromos, false, 'Акции заведения');
+    }
+
+
+    /* ------------------------------------------------------------------------
+       0.35. СОБЫТИЯ ЭТОГО ЗАВЕДЕНИЯ
+       ------------------------------------------------------------------------
+       Ближайшие события лентой. Карточку и окно события рисует app.js.
+       ------------------------------------------------------------------------ */
+    var ownEvents = allEvents().filter(function (ev) { return ev.venueId === venue.id; });
+
+    if (ownEvents.length === 0) {
+      document.getElementById('sec-events').style.display = 'none';
+    } else {
+      var eventsStrip = document.getElementById('venueEvents');
+      eventsStrip.innerHTML = ownEvents.map(eventCardHtml).join('');
+      initStrip(eventsStrip);
+    }
+
+
+    var hall     = document.getElementById('hall');
+    var hallView = document.getElementById('hallView');
+    var panel    = document.getElementById('panel');
+    var selectedEl = null;               // подсвеченный сейчас стол
+
+
+    /* ------------------------------------------------------------------------
+       1. РАЗМЕР ЗАЛА
+       ------------------------------------------------------------------------ */
+    hall.style.width  = venue.hall.width + 'px';
+    hall.style.height = venue.hall.height + 'px';
+
+    /* Ставит элемент по координатам из данных.
+       В данных может быть top или bottom, left или right — что указано, то и применяем. */
+    function place(el, data) {
+      ['top', 'bottom', 'left', 'right'].forEach(function (side) {
+        if (data[side] !== undefined) el.style[side] = data[side] + 'px';
+      });
+    }
+
+
+    /* ------------------------------------------------------------------------
+       2. ДЕКОР: касса, бар, люстра
+       ------------------------------------------------------------------------ */
+    (venue.hall.decor || []).forEach(function (item) {
+      var el = document.createElement('div');
+      el.className = 'decor' + (item.shape === 'round' ? ' round' : '');
+      if (item.width)  el.style.width  = item.width + 'px';
+      if (item.height) el.style.height = item.height + 'px';
+      place(el, item);
+      el.textContent = item.text;
+      hall.appendChild(el);
+    });
+
+
+    /* ------------------------------------------------------------------------
+       3. ПОДПИСИ ЗОН
+       ------------------------------------------------------------------------ */
+    (venue.hall.zones || []).forEach(function (zone) {
+      var el = document.createElement('div');
+      el.className = 'zone-label';
+      place(el, zone);
+      el.textContent = zone.text;
+      hall.appendChild(el);
+    });
+
+
+    /* ------------------------------------------------------------------------
+       4. СТОЛЫ
+       ------------------------------------------------------------------------ */
+    venue.hall.tables.forEach(function (table) {
+      var el = document.createElement('div');
+      el.className = 'table ' + table.status + (table.type === 'seat' ? ' seat' : '');
+      place(el, table);
+      el.textContent = table.id;
+
+      /* Таймер под занятым столом: сколько минут занят / через сколько освободится */
+      if (table.minutes !== undefined) {
+        var timer = document.createElement('div');
+        timer.className = 'timer';
+        timer.textContent = (table.status === 'soon' ? '~' : '') + table.minutes + ' мин';
+        el.appendChild(timer);
+      }
+
+      el.addEventListener('click', function () { selectTable(table, el); });
+
+      table._el = el;   // запоминаем элемент — пригодится для «найти похожий»
+      hall.appendChild(el);
+    });
+
+
+    /* ------------------------------------------------------------------------
+       5. ВЫБОР СТОЛА И ПАНЕЛЬ СПРАВА
+       ------------------------------------------------------------------------ */
+    function selectTable(table, el) {
+      if (selectedEl) selectedEl.classList.remove('selected');
+      el.classList.add('selected');
+      selectedEl = el;
+
+      var status = tableStatuses[table.status];
+
+      /* Строка про таймер — своя для «занят» и для «скоро освободится» */
+      var timeRow = '';
+      if (table.minutes !== undefined) {
+        timeRow = table.status === 'soon'
+          ? '<div class="row">Освободится примерно через <b>' + table.minutes + ' мин</b></div>'
+          : '<div class="row">Занят уже <b>' + table.minutes + ' мин</b></div>';
+      }
+
+      panel.innerHTML =
+        '<h3>Стол ' + esc(table.id) + '</h3>' +
+        '<div class="status-badge" style="background-color:' + status.color + '">' + status.label + '</div>' +
+        '<div class="row">Мест: <b>' + table.seats + '</b></div>' +
+        '<div class="row">Зона: <b>' + esc(table.view) + '</b></div>' +
+        timeRow +
+        '<button class="btn" id="tableAction"' + (table.status === 'reserved' ? ' disabled' : '') + '>' +
+          status.action +
+        '</button>';
+
+      document.getElementById('tableAction').addEventListener('click', function () {
+        if (status.can) {
+          openBooking(table);        // свободен или скоро освободится → форма брони
+        } else if (table.status === 'busy') {
+          findSimilar(table);        // занят → предлагаем похожий свободный
+        }
+      });
+
+      /* На телефоне панель находится под схемой — подкручиваем к ней,
+         иначе после клика кажется, что ничего не произошло. */
+      if (window.innerWidth <= 900) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    /* Ищем свободный стол: сначала в той же зоне с тем же числом мест,
+       иначе — любой свободный, куда поместится столько же гостей. */
+    function findSimilar(table) {
+      var free = venue.hall.tables.filter(function (t) { return t.status === 'free'; });
+
+      var match = free.filter(function (t) { return t.view === table.view && t.seats === table.seats; })[0]
+               || free.filter(function (t) { return t.seats >= table.seats; })[0];
+
+      if (!match) {
+        panel.innerHTML = '<h3>Свободных столов нет</h3>' +
+          '<div class="hint">Сейчас все столы заняты. Оставьте заявку — администратор предложит время.</div>' +
+          '<button class="btn" style="margin-top:14px" onclick="openBooking(null)">Оставить заявку</button>';
+        return;
+      }
+
+      selectTable(match, match._el);
+      match._el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+
+    /* ------------------------------------------------------------------------
+       6. ЛЕГЕНДА И СВОДКА — строятся из tableStatuses, а не вручную
+       ------------------------------------------------------------------------ */
+    var legend = document.getElementById('legend');
+    var stats  = document.getElementById('hallStats');
+
+    Object.keys(tableStatuses).forEach(function (key) {
+      var status = tableStatuses[key];
+
+      legend.innerHTML += '<span><span class="dot ' + key + '"></span>' + status.label.toLowerCase() + '</span>';
+
+      var count = venue.hall.tables.filter(function (t) { return t.status === key; }).length;
+      stats.innerHTML += '<div class="stat"><b>' + count + '</b>' + status.plural + '</div>';
+    });
+
+
+    /* ------------------------------------------------------------------------
+       7. АДАПТИВ: сжимаем схему целиком, если она не влезает в экран
+       ------------------------------------------------------------------------
+       Схема нарисована в пикселях (720×480). Вместо пересчёта координат под
+       каждый экран мы сжимаем весь блок через transform: scale().
+       Поэтому в venues.js координаты можно оставить как есть.
+       ------------------------------------------------------------------------ */
+    function fitHall() {
+      /* offsetWidth — реальная ширина с рамкой; transform на неё не влияет */
+      var scale = Math.min(1, hallView.clientWidth / hall.offsetWidth);
+      hall.style.transform = 'scale(' + scale + ')';
+      /* Схема сжалась, но место в потоке занимает прежнее — задаём высоту вручную */
+      hallView.style.height = (hall.offsetHeight * scale) + 'px';
+    }
+
+    fitHall();
+    window.addEventListener('resize', fitHall);
+
+
+    /* ------------------------------------------------------------------------
+       8. ПОДСКАЗКА В ПАНЕЛИ ДО ПЕРВОГО КЛИКА
+       ------------------------------------------------------------------------ */
+    panel.innerHTML =
+      '<h3>Выберите стол</h3>' +
+      '<div class="hint">Нажмите на любой стол на схеме — покажу статус, вместимость и зону. ' +
+      'Свободный стол можно забронировать сразу.</div>' +
+      '<button class="btn btn-ghost" style="margin-top:16px" onclick="openBooking(null)">Забронировать без выбора стола</button>';
+
+
+    /* ------------------------------------------------------------------------
+       9. ДОВОДКА ВКЛАДОК
+       ------------------------------------------------------------------------
+       Раздел мог скрыться сам (нет отзывов, нет фото) — тогда убираем и
+       вкладку, чтобы она не вела в пустоту.
+       ------------------------------------------------------------------------ */
+    TABS.forEach(function (tab) {
+      var section = document.getElementById(tab.id);
+      var link = tabsHost.querySelector('[data-target="' + tab.id + '"]');
+      if (section && link && section.style.display === 'none') link.style.display = 'none';
+    });
+
+    updateActiveTab();   // подсвечиваем нужную вкладку сразу при открытии
+
+    /* Пришли из афиши по ссылке «Забронировать стол» — сразу открываем
+       форму с датой и временем события */
+    initEventBookingFromUrl();
+  </script>
+
+</body>
+</html>
