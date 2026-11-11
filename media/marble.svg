@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <!-- Белый мрамор: светлый фон, редкие серые и золотистые прожилки.
+       Прожилки — кривые линии, которые фильтр слегка «дрожит»,
+       чтобы они выглядели природными, а не нарисованными линейкой. -->
+  <defs>
+    <filter id="vein" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="38" xChannelSelector="R" yChannelSelector="G"/>
+      <feGaussianBlur stdDeviation="0.6"/>
+    </filter>
+    <filter id="cloud">
+      <feTurbulence type="fractalNoise" baseFrequency="0.0025 0.006" numOctaves="4" seed="2"/>
+      <feColorMatrix values="0 0 0 0 0.55  0 0 0 0 0.57  0 0 0 0 0.6  0 0 0 0.16 0"/>
+    </filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F3F2F0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <rect width="1600" height="1000" filter="url(#cloud)"/>
+
+  <g fill="none" stroke-linecap="round" filter="url(#vein)">
+    <!-- серые прожилки -->
+    <path d="M-40 120 C 260 260, 420 180, 640 420 S 980 760, 1180 1040" stroke="#9EA4AA" stroke-width="2.2" opacity="0.55"/>
+    <path d="M120 -40 C 220 160, 360 300, 330 520 S 420 860, 520 1040" stroke="#B4B9BE" stroke-width="1.2" opacity="0.6"/>
+    <path d="M900 -40 C 960 140, 1140 240, 1260 420 S 1500 640, 1660 700" stroke="#A9AEB3" stroke-width="1.6" opacity="0.5"/>
+    <path d="M640 420 C 700 360, 820 330, 900 250" stroke="#B4B9BE" stroke-width="0.9" opacity="0.6"/>
+    <path d="M1180 1040 C 1220 900, 1320 820, 1460 800 S 1620 760, 1680 640" stroke="#B4B9BE" stroke-width="1" opacity="0.45"/>
+    <!-- золотистые прожилки -->
+    <path d="M-30 300 C 200 380, 300 520, 460 600 S 760 700, 880 1040" stroke="#C49A6C" stroke-width="2.6" opacity="0.7"/>
+    <path d="M460 600 C 520 560, 600 580, 680 540" stroke="#C49A6C" stroke-width="1.2" opacity="0.7"/>
+    <path d="M1300 -40 C 1250 120, 1320 260, 1420 360 S 1560 520, 1680 560" stroke="#C9A57D" stroke-width="2" opacity="0.65"/>
+    <path d="M1420 360 C 1380 420, 1390 500, 1350 580" stroke="#C9A57D" stroke-width="1" opacity="0.6"/>
+  </g>
+</svg>
